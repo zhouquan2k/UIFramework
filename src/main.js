@@ -9,8 +9,11 @@ import store from './store'  // used by layout
 import '@/icons'
 
 import Element from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css';
 // import './assets/styles/element-variables.scss'
-Vue.use(Element)
+Vue.use(Element, {
+  size: 'small' // set element-ui default size
+});
 
 // added by zhouquan ^
 

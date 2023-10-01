@@ -5,19 +5,26 @@ import Router from 'vue-router'
 import Layout from '@/layout'
 
 // import { title } from '@/settings'
-// import { getRoutes as getHethicsRoutes } from '@hethics/router'
+import { getRoutes } from '@app/router'
 
 
 Vue.use(Router)
 
+var topRoute = {
+    path: '/',
+    component: Layout,
+    hidden: true,
+    children: [],
+};
+
 // 公共路由
 export const constantRoutes = [
     {
-        path: '/hello',
+        path: '/hello2',
         component: (resolve) => require(['@/components/HelloWorld'], resolve),
     },
     {
-        path: '',
+        path: '/hello',
         component: Layout,
         redirect: 'home',
         children: [{
@@ -28,7 +35,13 @@ export const constantRoutes = [
         }
         ]
     },
+    topRoute
 ];
+
+getRoutes().forEach(r => {
+    r.meta = { title: r.name };
+    topRoute.children.push(r);
+});
 
 export default new Router({
     base: process.env.VUE_APP_APP_NAME ? process.env.VUE_APP_APP_NAME : "/",
