@@ -1,23 +1,14 @@
 <template>
-  <div :class="{'has-logo':showLogo}" :style="{ backgroundColor: settings.sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground }">
+  <div :class="{ 'has-logo': showLogo, [variables.menuBackground]: true }"
+    :style="{ backgroundColor: settings.sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground }">
     <logo v-if="showLogo" :collapse="isCollapse" />
     <el-scrollbar :class="settings.sideTheme" wrap-class="scrollbar-wrapper">
-      <el-menu
-        :default-active="activeMenu"
-        :collapse="isCollapse"
+      <el-menu :default-active="activeMenu" :collapse="isCollapse"
         :background-color="settings.sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground"
         :text-color="settings.sideTheme === 'theme-dark' ? variables.menuColor : variables.menuLightColor"
-        :unique-opened="true"
-        :active-text-color="settings.theme"
-        :collapse-transition="false"
-        mode="vertical"
-      >
-        <sidebar-item
-          v-for="(route, index) in sidebarRouters"
-          :key="route.path  + index"
-          :item="route"
-          :base-path="route.path"
-        />
+        :unique-opened="true" :active-text-color="settings.theme" :collapse-transition="false" mode="vertical">
+        <sidebar-item v-for="(route, index) in sidebarRouters" :key="route.path + index" :item="route"
+          :base-path="route.path" />
       </el-menu>
     </el-scrollbar>
   </div>
@@ -27,7 +18,7 @@
 import { mapGetters, mapState } from "vuex";
 import Logo from "./Logo";
 import SidebarItem from "./SidebarItem";
-import variables from "@/assets/styles/variables.scss";
+import variables from "@/assets/styles/variables";
 
 export default {
   components: { SidebarItem, Logo },
@@ -55,3 +46,8 @@ export default {
   }
 };
 </script>
+<style scoped>
+.el-menu {
+  padding-left: 30px;
+}
+</style>

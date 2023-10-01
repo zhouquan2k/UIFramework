@@ -482,6 +482,13 @@ export function toCamelCase(str, upperCaseFirst) {
 }
 
 /**
+ * 获得 Vue 应用的基础路径
+ */
+export function getBasePath() {
+  return process.env.VUE_APP_APP_NAME || '/';
+}
+
+/**
  * 获得 Vue 应用的访问路径
  *
  * @param path 路径

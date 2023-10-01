@@ -21,6 +21,7 @@
 
 <script>
 // import path from 'path'
+import { getPath } from '@/utils'
 import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
@@ -84,7 +85,8 @@ export default {
       if (isExternal(this.basePath)) {
         return this.basePath
       }
-      return path.resolve(this.basePath, routePath)
+      //return path.resolve(this.basePath, routePath)
+      return `/${this.basePath}/${routePath}`;
     }
   }
 }
