@@ -41,7 +41,11 @@
             <el-table-column label="操作">
                 <template slot-scope="scope">
                     <el-button type="text" @click="showEditDialog(scope.row)">修改</el-button>
+                    <el-button v-for="extension in extensions" type="text"
+                        @click="callMethod(extension.method, scope.row)">{{ extension.desc
+                        }}</el-button>
                     <el-button type="text" @click="showDeleteConfirm(scope.row)">删除</el-button>
+
                 </template>
             </el-table-column>
         </el-table>
@@ -75,7 +79,7 @@
 import { notImplemented, getResult } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
-    props: ['name', 'desc', 'apis'],
+    props: ['name', 'desc', 'apis', 'extensions'],
     components: { RightToolbar },
     data() {
         return {
@@ -96,6 +100,10 @@ export default {
         };
     },
     methods: {
+        // TODO
+        callMethod(methodName, ...params) {
+            this.$parent[methodName](...params);
+        },
         async getList() {
             this.list = await getResult(this.apis.search({}));
         },
