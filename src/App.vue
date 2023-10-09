@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" style="margin:10px">
     <router-view />
     <!-- HelloWorld msg="Welcome to Your Vue.js App" /-->
   </div>

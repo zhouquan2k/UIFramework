@@ -1,35 +1,24 @@
 <template>
-  <el-menu
-      :default-active="activeMenu"
-      mode="horizontal"
-      @select="handleSelect"
-  >
+  <el-menu :default-active="activeMenu" mode="horizontal" @select="handleSelect">
     <template v-for="(item, index) in topMenus">
-      <el-menu-item :style="{'--theme': theme}" :index="item.path" :key="index" v-if="index < visibleNumber"
-      ><svg-icon :icon-class="item.meta.icon" />
-        {{ item.meta.title }}</el-menu-item
-      >
+      <el-menu-item :style="{ '--theme': theme }" :index="item.path" :key="index" v-if="index < visibleNumber"><svg-icon
+          :icon-class="item.meta.icon" />
+        {{ item.meta.title }}</el-menu-item>
     </template>
 
     <!-- 顶部菜单超出数量折叠 -->
-    <el-submenu :style="{'--theme': theme}" index="more" v-if="topMenus.length > visibleNumber">
+    <el-submenu :style="{ '--theme': theme }" index="more" v-if="topMenus.length > visibleNumber">
       <template slot="title">更多菜单</template>
       <template v-for="(item, index) in topMenus">
-        <el-menu-item
-            :index="item.path"
-            :key="index"
-            v-if="index >= visibleNumber"
-        ><svg-icon :icon-class="item.meta.icon" />
-          {{ item.meta.title }}</el-menu-item
-        >
+        <el-menu-item :index="item.path" :key="index" v-if="index >= visibleNumber"><svg-icon
+            :icon-class="item.meta.icon" />
+          {{ item.meta.title }}</el-menu-item>
       </template>
     </el-submenu>
   </el-menu>
 </template>
 
 <script>
-import { constantRoutes } from "@/router";
-
 // 隐藏侧边栏路由
 const hideList = ['/index', '/user/profile'];
 
@@ -71,10 +60,10 @@ export default {
       this.routers.map((router) => {
         for (var item in router.children) {
           if (router.children[item].parentPath === undefined) {
-            if(router.path === "/") {
+            if (router.path === "/") {
               router.children[item].path = "/" + router.children[item].path;
             } else {
-              if(!this.ishttp(router.children[item].path)) {
+              if (!this.ishttp(router.children[item].path)) {
                 router.children[item].path = router.path + "/" + router.children[item].path;
               }
             }
@@ -83,7 +72,7 @@ export default {
           childrenMenus.push(router.children[item]);
         }
       });
-      return constantRoutes.concat(childrenMenus);
+      return childrenMenus;
     },
     // 默认激活的菜单
     activeMenu() {
@@ -93,7 +82,7 @@ export default {
         const tmpPath = path.substring(1, path.length);
         activePath = "/" + tmpPath.substring(0, tmpPath.indexOf("/"));
         this.$store.dispatch('app/toggleSideBarHide', false);
-      } else if(!this.$route.children) {
+      } else if (!this.$route.children) {
         activePath = path;
         this.$store.dispatch('app/toggleSideBarHide', true);
       }
@@ -143,7 +132,7 @@ export default {
           }
         });
       }
-      if(routes.length > 0) {
+      if (routes.length > 0) {
         this.$store.commit("SET_SIDEBAR_ROUTERS", routes);
       }
     },
@@ -155,7 +144,7 @@ export default {
 </script>
 
 <style lang="scss">
-.topmenu-container.el-menu--horizontal > .el-menu-item {
+.topmenu-container.el-menu--horizontal>.el-menu-item {
   float: left;
   height: 50px !important;
   line-height: 50px !important;
@@ -164,13 +153,14 @@ export default {
   margin: 0 10px !important;
 }
 
-.topmenu-container.el-menu--horizontal > .el-menu-item.is-active, .el-menu--horizontal > .el-submenu.is-active .el-submenu__title {
+.topmenu-container.el-menu--horizontal>.el-menu-item.is-active,
+.el-menu--horizontal>.el-submenu.is-active .el-submenu__title {
   border-bottom: 2px solid #{'var(--theme)'} !important;
   color: #303133;
 }
 
 /* submenu item */
-.topmenu-container.el-menu--horizontal > .el-submenu .el-submenu__title {
+.topmenu-container.el-menu--horizontal>.el-submenu .el-submenu__title {
   float: left;
   height: 50px !important;
   line-height: 50px !important;
