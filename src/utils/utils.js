@@ -9,6 +9,17 @@ export function safeGet(o, path){
 //TODO safeSet
 */
 
+export const defaultCrudActions = [
+  {
+    desc: "修改",
+    method: 'showEditDialog',
+  },
+  {
+    desc: '删除',
+    method: 'showDeleteConfirm',
+  }
+];
+
 export function getCurrentUser() {
   return store.state.user;
 }

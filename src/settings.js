@@ -43,6 +43,8 @@ module.exports = {
    */
   errorLog: 'production',
 
+  loginNeeded: true,
+
   isTest: process.env.VUE_APP_IS_TEST,
 
   filePreviewUrl: process.env.VUE_APP_FILE_PREVIEW_URL,

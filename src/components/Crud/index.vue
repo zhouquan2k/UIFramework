@@ -38,15 +38,23 @@
                         scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column label="操作" fixed="right" width="250">
                 <template slot-scope="scope">
-                    <el-button type="text" @click="showEditDialog(scope.row)">修改</el-button>
-                    <el-button v-for="extension in extensions" type="text"
-                        @click="callMethod(extension.method, scope.row)">{{ extension.desc
+                    <el-button v-for="action in actions.slice(0, 2)" type="text"
+                        @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
-                    <el-button type="text" @click="showDeleteConfirm(scope.row)">删除</el-button>
-
+                    <el-dropdown @command="(command) => callMethod(command, scope.row)">
+                        <span class="el-dropdown-link">
+                            更多<i class="el-icon-d-arrow-right el-icon--left" />
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item v-for="action in actions.slice(2)" :command="action.method" size="mini"
+                                type="text" :icon="action.icon" v-hasPermi="['system:user:delete']">{{ action.desc
+                                }}</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
                 </template>
+
             </el-table-column>
         </el-table>
         <el-dialog :title="desc" :visible.sync="dialogVisible">
@@ -79,7 +87,7 @@
 import { notImplemented, getResult } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
-    props: ['name', 'desc', 'apis', 'extensions'],
+    props: ['name', 'desc', 'apis', 'actions'],
     components: { RightToolbar },
     data() {
         return {
@@ -102,7 +110,10 @@ export default {
     methods: {
         // TODO
         callMethod(methodName, ...params) {
-            this.$parent[methodName](...params);
+            if (this.$parent[methodName])
+                this.$parent[methodName](...params);
+            else
+                this[methodName](...params);
         },
         async getList() {
             this.list = await getResult(this.apis.search({}));
@@ -170,6 +181,12 @@ export default {
 <style scoped>
 .el-form-item {
     margin-right: 10px;
+}
+
+.el-dropdown-link {
+    margin-left: 10px;
+    font-size: 12px;
+    color: #409EFF;
 }
 </style>
   
