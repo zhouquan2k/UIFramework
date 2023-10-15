@@ -30,20 +30,23 @@
             <right-toolbar :showSearch.sync="searchVisible" @queryTable="getList"
                 :columns="metadata.fields"></right-toolbar>
         </el-row>
-        <el-table :data="list" height="500" style="width: 100%">
+        <el-table :data="list" height="500" style="width: 100%" row-key="id" default-expand-all
+            :tree-props="{ children: 'children' }">
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields" v-if="!field.hidden"
                 :key="field.name">
                 <template slot-scope="scope">
-                    <span>{{ field.type == 'Enum' ? dictionariesMap[field.typeName][scope.row[field.name]] :
-                        scope.row[field.name] }}</span>
+                    <span v-if="field.type == 'Enum'">{{ dictionariesMap[field.typeName][scope.row[field.name]] }}</span>
+                    <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
+                        item[field.refData])?.join(" ") }}</span>
+                    <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" fixed="right" width="250">
+            <el-table-column label="操作" fixed="right" width="280">
                 <template slot-scope="scope">
                     <el-button v-for="action in actions.slice(0, 2)" type="text"
                         @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
-                    <el-dropdown @command="(command) => callMethod(command, scope.row)">
+                    <el-dropdown v-if="actions.length > 2" @command="(command) => callMethod(command, scope.row)">
                         <span class="el-dropdown-link">
                             更多<i class="el-icon-d-arrow-right el-icon--left" />
                         </span>
@@ -61,10 +64,12 @@
             <el-form :model="detail" label-position="right" label-width="120px">
                 <el-form-item v-for="field in metadata.fields" v-if="!field.hidden" :label="field.label">
                     <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
+                    <el-input v-model="detail[field.name]" v-if="['Integer'].includes(field.type)"
+                        style="width:100px;"></el-input>
                     <el-input v-model="detail[field.name]" v-if="['String'].includes(field.type)"></el-input>
-                    <el-select v-model="detail[field.name]" v-if="['Enum'].includes(field.type)">
-                        <el-option v-for="item in dictionaries[field.typeName]" :label="item.label" :value="item.value"
-                            :key="item.value" />
+                    <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
+                        <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
+                            :label="item.label" :value="item.value" :key="item.value" />
                     </el-select>
                 </el-form-item>
             </el-form>
@@ -84,6 +89,7 @@
 </template>
   
 <script>
+
 import { notImplemented, getResult } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
@@ -116,13 +122,13 @@ export default {
                 this[methodName](...params);
         },
         async getList() {
-            this.list = await getResult(this.apis.search({}));
+            this.list = await getResult(this.apis.search({}), null, this.idField);
         },
         async search() {
-            this.list = await getResult(this.apis.search(this.searchName));
+            this.list = await getResult(this.apis.search(this.searchName), null, this.idField);
         },
-        showAddDialog() {
-            this.detail = {};
+        showAddDialog(current) {
+            this.detail = { parentId: current ? current[this.idField] : null };
             this.dialogVisible = true;
         },
         showEditDialog(detail) {
@@ -187,6 +193,10 @@ export default {
     margin-left: 10px;
     font-size: 12px;
     color: #409EFF;
+}
+
+.el-table th.el-table__cell {
+    background-color: #f8f8f9;
 }
 </style>
   

@@ -68,11 +68,22 @@ Date.prototype.format = function (fmt) {
 }
 
 //get records and reset loading flag
-export async function getResult(promise, loading) {
+export async function getResult(promise, loading, idField) {
   const resetFlag = (obj, loading) => { if (obj && loading) obj[loading] = false };
+  //树形结构需要每行有一个id，且还只能是固定的名字
+  const mappingId = (idField, result) => {
+    if (!idField) return;
+    if (Array.isArray(result)) {
+      result.forEach(item => mappingId(idField, item));
+    }
+    else {
+      result.id = result[idField];
+      if (result.children) mappingId(idField, result.children);
+    }
+  };
   const This = this;
   if (this && loading) this[loading] = true;
-  return promise.then((x) => { resetFlag(This, loading); return x; }, (e) => { resetFlag(This, loading); throw e; }).then(resp => resp.data.result);
+  return promise.then((x) => { resetFlag(This, loading); var data = x.data.result; mappingId(idField, data); return data; }, (e) => { resetFlag(This, loading); throw e; }); //.then(resp => resp.data.result);
 }
 
 export function moneyFormatter(x, y, value) {
