@@ -7,16 +7,18 @@ import { getRoutes as getAppRoutes } from '@app/router'
 
 
 export function initRouter() {
-    var topRoute = {
-        path: '/',
+    var testRoute = {
+        name: 'test0',
+        path: '/test',
         component: Layout,
-        hidden: true,
+        meta: { title: '测试', icon: 'form' },
         children: [],
     };
 
+    // var user_vue = 'user/user.vue'
     // 公共路由
     const constantRoutes = [
-        topRoute,
+        testRoute,
         {
             path: '/hello2',
             component: (resolve) => require(['@/components/HelloWorld'], resolve),
@@ -32,12 +34,26 @@ export function initRouter() {
                 meta: { title: 'Home', icon: 'dashboard', affix: true }
             }
             ]
-        },
+        }/*, // for test
+        {
+            path: '/system',
+            component: Layout,
+            hidden: true,
+            redirect: 'noredirect',
+            children: [{
+                path: 'user',
+                component: (resolve) => require([`@${user_vue}`], resolve),
+                name: 'user',
+                meta: { title: '用户管理', icon: 'form', activeMenu: '/system/user' }
+            }
+            ]
+        }
+        */
     ];
 
     [...getAppRoutes(), ...getUserRoutes()].forEach(r => {
         r.meta = { title: r.name };
-        topRoute.children.push(r);
+        testRoute.children.push(r);
     });
 
     return constantRoutes;

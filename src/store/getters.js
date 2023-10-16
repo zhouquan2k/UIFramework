@@ -13,13 +13,11 @@ const getters = {
   introduction: state => state.user.introduction,
   roles: state => state.user.roles,
   permissions: state => ["*:*:*"], // TODO state.user.permissions,
-  routes: state => [], // state.routes,
   // 工具栏
+  routes: state => [], // state.menu.routes, // state.routes,
+  menus: state => state.menu.menus,
   topbarRouters: state => [],  //state.permission.topbarRouters,
   defaultRoutes: state => [],  //state.permission.defaultRoutes,
-  sidebarRouters: state => {
-    return initRouter()[0].children; // menu
-  },  //state.permission.sidebarRouters,
 
   // 数据字典
   dict_datas: state => state.dict.dictDatas

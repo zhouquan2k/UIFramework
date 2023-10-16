@@ -7,8 +7,7 @@
         :background-color="settings.sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground"
         :text-color="settings.sideTheme === 'theme-dark' ? variables.menuColor : variables.menuLightColor"
         :unique-opened="true" :active-text-color="settings.theme" :collapse-transition="false" mode="vertical">
-        <sidebar-item v-for="(route, index) in sidebarRouters" :key="route.path + index" :item="route"
-          :base-path="route.path" />
+        <sidebar-item v-for="(route, index) in menus" :key="index" :item="route" :base-path="route.path" />
       </el-menu>
     </el-scrollbar>
   </div>
@@ -24,7 +23,7 @@ export default {
   components: { SidebarItem, Logo },
   computed: {
     ...mapState(["settings"]),
-    ...mapGetters(["sidebarRouters", "sidebar"]),
+    ...mapGetters(["menus", "sidebar"]),
     activeMenu() {
       const route = this.$route;
       const { meta, path } = route;
@@ -46,8 +45,4 @@ export default {
   }
 };
 </script>
-<style scoped>
-.el-menu {
-  padding-left: 30px;
-}
-</style>
+<style scoped></style>
