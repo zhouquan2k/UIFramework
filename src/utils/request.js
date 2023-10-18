@@ -1,4 +1,5 @@
 import axios from 'axios'
+// TODO refactor
 import { Message, MessageBox, Notification } from 'element-ui'
 import store from '@/store'
 
@@ -8,11 +9,6 @@ import errorCode from '@/utils/errorCode'
 import {getPath, getTenantEnable} from "@/utils/ruoyi";
 import {refreshToken} from "@/api/login";
 
-// 需要忽略的提示。忽略后，自动 Promise.reject('error')
-const ignoreMsgs = [
-  "无效的刷新令牌", // 刷新令牌被删除时，不用提示
-  "刷新令牌已过期" // 使用刷新令牌，刷新获取新的访问令牌时，结果因为过期失败，此时需要忽略。否则，会导致继续 401，无法跳转到登出界面
-]
 
 // 是否显示重新登录
 export let isRelogin = { show: false };
@@ -54,13 +50,20 @@ service.interceptors.request.use(config => {
   console.log(error)
   Promise.reject(error)
 })
-/*
-const errorHandler = async (code, msg, res)=>{
-  console.log('errorHandler: '+code+','+msg);
+
+// 需要忽略的提示。忽略后，自动 Promise.reject('error')
+const ignoreMsgs = [
+  "无效的刷新令牌", // 刷新令牌被删除时，不用提示
+  "刷新令牌已过期" // 使用刷新令牌，刷新获取新的访问令牌时，结果因为过期失败，此时需要忽略。否则，会导致继续 401，无法跳转到登出界面
+];
+
+const errorHandler = async (code, msg, res) => {
+  console.log('errorHandler: ' + code + ',' + msg);
   if (ignoreMsgs.indexOf(msg) !== -1) { // 如果是忽略的错误码，直接返回 msg 异常
     return Promise.reject(msg)
   } else if (code === 401) {
     // 如果未认证，并且未进行刷新令牌，说明可能是访问令牌过期了
+    /*
     if (!isRefreshToken) {
       isRefreshToken = true;
       // 1. 如果获取不到刷新令牌，则只能执行登出操作
@@ -92,25 +95,17 @@ const errorHandler = async (code, msg, res)=>{
         })
       })
     }
+    */
   } else if (code === 500) {
     Message({
       message: msg,
-      type: 'error'
-    })
-    return Promise.reject(new Error(msg))
-  } else if (code === 901) {
-    Message({
       type: 'error',
       duration: 0,
-      dangerouslyUseHTMLString: true,
-      message: '<div>演示模式，无法进行写操作</div>'
-        + '<div> &nbsp; </div>'
-        + '<div>参考 https://doc.iocoder.cn/ 教程</div>'
-        + '<div> &nbsp; </div>'
-        + '<div>5 分钟搭建本地环境</div>',
+      showClose: true,
+      center: true
     })
     return Promise.reject(new Error(msg))
-  } else if (code !== 200 && code !== 'Ok') {
+  } else if (code !== 200) {  // && code !== 'Ok'
     if (msg === '无效的刷新令牌') { // hard coding：忽略这个提示，直接登出
       console.log(msg)
     } else {
@@ -120,7 +115,6 @@ const errorHandler = async (code, msg, res)=>{
     }
     return Promise.reject('error')
   }
-
   return false;
 };
 
@@ -131,27 +125,29 @@ service.interceptors.response.use(async res => {
   //const code = res.data.code || 200;
   // 获取错误信息
   //const msg = res.data.msg || errorCode[code] || errorCode['default']
-  if (res.status==200) return res.data;
-  return errorHandler(res.status,res.statusText, res);
+  if (res.status == 200) return res.data;
+  return errorHandler(res.status, res.statusText, res);
 }, error => {
-    console.log('err' + error)
-    var ret=errorHandler(error.response.status,error.response.data?error.response.data.msg:error.message, error.response);
-    if (ret) return ret;
-    let {message} = error;
-    if (message === "Network Error") {
-      message = "后端接口连接异常";
-    } else if (message.includes("timeout")) {
-      message = "系统接口请求超时";
-    } else if (message.includes("Request failed with status code")) {
-      message = "系统接口" + message.substr(message.length - 3) + "异常";
-    }
-    Message({
-      message: message,
-      type: 'error',
-      duration: 5 * 1000
-    })
-    return Promise.reject(error)
+  console.log('err: ' + error)
+  var ret = errorHandler(error.response.status, error.response.data ? error.response.data.message : error.message, error.response);
+  if (ret) return ret;
+
+  /* TODO: refactor needed */
+  let { message } = error;
+  if (message === "Network Error") {
+    message = "后端接口连接异常";
+  } else if (message.includes("timeout")) {
+    message = "系统接口请求超时";
+  } else if (message.includes("Request failed with status code")) {
+    message = "系统接口" + message.substr(message.length - 3) + "异常";
   }
+  Message({
+    message: message,
+    type: 'error',
+    duration: 5 * 1000
+  })
+  return Promise.reject(error)
+}
 )
 
 export function getBaseHeader() {
@@ -165,10 +161,10 @@ function handleAuthorized() {
   if (!isRelogin.show) {
     isRelogin.show = true;
     MessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
-        confirmButtonText: '重新登录',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      confirmButtonText: '重新登录',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
     ).then(() => {
       isRelogin.show = false;
       store.dispatch('LogOut').then(() => {
@@ -180,6 +176,5 @@ function handleAuthorized() {
   }
   return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
 }
-*/
 
 export default service;

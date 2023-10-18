@@ -21,7 +21,7 @@ const menus = {
       return new Promise(resolve => {
         // 向后端请求路由数据
         menuApi.list().then(res => {
-          const menus = res.data.result;
+          const menus = res.result;
 
           const processMenu = function (menu, parent) {
             var ret = {};

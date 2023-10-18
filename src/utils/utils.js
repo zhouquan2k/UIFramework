@@ -83,7 +83,7 @@ export async function getResult(promise, loading, idField) {
   };
   const This = this;
   if (this && loading) this[loading] = true;
-  return promise.then((x) => { resetFlag(This, loading); var data = x.data.result; mappingId(idField, data); return data; }, (e) => { resetFlag(This, loading); throw e; }); //.then(resp => resp.data.result);
+  return promise.then((x) => { resetFlag(This, loading); var data = x.result; mappingId(idField, data); return data; }, (e) => { resetFlag(This, loading); throw e; }); //.then(resp => resp.data.result);
 }
 
 export function moneyFormatter(x, y, value) {

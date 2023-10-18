@@ -1,20 +1,6 @@
 <template>
     <div>
-        <el-form v-show="searchVisible" inline>
-            <el-form-item>
-                <el-input placeholder="TODO用户名" v-model="searchName"></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-button type="primary" @click="search">搜索</el-button>
-            </el-form-item>
-            <el-form-item>
-                <el-button type="primary" @click="showAddDialog">新增</el-button>
-            </el-form-item>
-            <el-form-item>
-                <el-button type="primary" @click="getList">刷新</el-button>
-            </el-form-item>
-        </el-form>
-        <el-row :gutter="10" class="mb8">
+        <el-row :gutter="10" class="grid-toolbar">
             <el-col :span="1.5">
                 <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
                     v-hasPermi="['system:user:create']">新增</el-button>
@@ -30,6 +16,27 @@
             <right-toolbar :showSearch.sync="searchVisible" @queryTable="getList"
                 :columns="metadata.fields"></right-toolbar>
         </el-row>
+        <el-form v-if="metadata.searchFields?.length" v-show="searchVisible" inline class="search-form"
+            v-model="searchForm">
+            <el-form-item v-for="field in metadata.searchFields"
+                v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)">
+                <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)" class="search-input"
+                    :placeholder="field.label" />
+                <el-input v-model="searchForm[field.name]" v-if="['Integer'].includes(field.type)" class="search-input"
+                    :placeholder="field.label"></el-input>
+                <el-input v-model="searchForm[field.name]" v-if="['String'].includes(field.type)" :placeholder="field.label"
+                    class="search-input" />
+                <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)" value=""
+                    :placeholder="field.label" class="search-input">
+                    <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
+                        :label="item.label" :value="item.value" :key="item.value" />
+                </el-select>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="onSearch">搜索</el-button>
+                <el-button @click="onReset">重置</el-button>
+            </el-form-item>
+        </el-form>
         <el-table :data="list" height="500" style="width: 100%" row-key="id" default-expand-all
             :tree-props="{ children: 'children' }">
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields" v-if="!field.hidden"
@@ -62,7 +69,9 @@
         </el-table>
         <el-dialog :title="desc" :visible.sync="dialogVisible">
             <el-form :model="detail" label-position="right" label-width="120px">
-                <el-form-item v-for="field in metadata.fields" v-if="!field.hidden" :label="field.label">
+                <el-form-item v-for="field in metadata.fields"
+                    v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)"
+                    :label="field.label">
                     <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
                     <el-input v-model="detail[field.name]" v-if="['Integer'].includes(field.type)"
                         style="width:100px;"></el-input>
@@ -101,11 +110,10 @@ export default {
             dictionaries: {},
             dictionariesMap: {},
             idField: null,
+            searchForm: {},
 
             list: [],
             detail: {},
-
-            searchName: '',
 
             dialogVisible: false,
             deleteConfirmVisible: false,
@@ -121,11 +129,16 @@ export default {
             else
                 this[methodName](...params);
         },
-        async getList() {
-            this.list = await getResult(this.apis.search({}), null, this.idField);
+        onReset() {
+            this.searchForm = {};
+            this.getList();
         },
-        async search() {
-            this.list = await getResult(this.apis.search(this.searchName), null, this.idField);
+        async getList() {
+            this.list = await getResult(this.apis.list(), null, this.idField);
+        },
+        async onSearch() {
+            if (Object.keys(this.searchForm).length == 0) return this.getList();
+            this.list = await getResult(this.apis.search(this.searchForm), null, this.idField);
         },
         showAddDialog(current) {
             this.detail = { parentId: current ? current[this.idField] : null };
@@ -170,6 +183,7 @@ export default {
             return obj;
         }, {});
         this.metadata = metadata.entitiesMap[this.name];
+        this.metadata.searchFields = this.metadata.fields.filter(field => field.searchable);
         this.idField = this.metadata.idField;
         this.dictionaries = metadata.dictionaries;
         for (const [key, dict] of Object.entries(metadata.dictionaries)) {
@@ -184,9 +198,14 @@ export default {
 };
 </script>
   
-<style scoped>
+<style >
 .el-form-item {
     margin-right: 10px;
+}
+
+.el-form-item--mini.el-form-item,
+.el-form-item--small.el-form-item {
+    margin-bottom: 5px;
 }
 
 .el-dropdown-link {
@@ -197,6 +216,18 @@ export default {
 
 .el-table th.el-table__cell {
     background-color: #f8f8f9;
+}
+
+.search-form {
+    margin: 2px;
+}
+
+.search-input {
+    width: 100px;
+}
+
+.grid-toolbar {
+    margin: 10px;
 }
 </style>
   
