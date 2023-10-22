@@ -1,18 +1,13 @@
 <template>
     <div>
         <el-row :gutter="10" class="grid-toolbar">
-            <el-col :span="1.5">
-                <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
-                    v-hasPermi="['system:user:create']">新增</el-button>
-            </el-col>
-            <el-col :span="1.5">
-                <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
-                    v-hasPermi="['system:user:import']">导入</el-button>
-            </el-col>
-            <el-col :span="1.5">
-                <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                    v-hasPermi="['system:user:export']">导出</el-button>
-            </el-col>
+            <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
+                v-hasPermi="['system:user:create']">新增</el-button>
+            <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
+                v-hasPermi="['system:user:import']">导入</el-button>
+            <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
+                v-hasPermi="['system:user:export']">导出</el-button>
+            <slot></slot>
             <right-toolbar :showSearch.sync="searchVisible" @queryTable="getList"
                 :columns="metadata.fields"></right-toolbar>
         </el-row>
@@ -29,7 +24,7 @@
                 <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)" value=""
                     :placeholder="field.label" class="search-input">
                     <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
-                        :label="item.label" :value="item.value" :key="item.value" />
+                        :label="item.label" :value="item.value" :key="`search-${item.value}`" />
                 </el-select>
             </el-form-item>
             <el-form-item>
@@ -70,14 +65,14 @@
             <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
                 class="input-form">
                 <el-row>
-                    <el-col v-for="field in metadata.fields" :span="24 / formCols">
-                        <el-form-item
-                            v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)"
-                            :label="field.label" :prop="field.name">
+                    <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
+                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text'].includes(field.type)">
+                        <el-form-item :label="field.label" :prop="field.name">
                             <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
                             <el-input v-model="detail[field.name]" v-if="['Integer'].includes(field.type)"
                                 style="width:100px;"></el-input>
-                            <el-input v-model="detail[field.name]" v-if="['String'].includes(field.type)"></el-input>
+                            <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
+                                v-if="['String', 'Text'].includes(field.type)"></el-input>
                             <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
                                 <el-option
                                     v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"

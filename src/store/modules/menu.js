@@ -70,7 +70,7 @@ function constantRouteToMenus() {
 
 export const loadView = (view) => { // 路由懒加载
   // return (resolve) => require([`@/views/${view}`], resolve)
-  const modules = ['user', 'app']
+  const modules = ['user', 'app', 'gcp']
   for (var m of modules) {
     if (view && view.startsWith('@' + m + '/')) {
       const path = view.substring(m.length + 2);

@@ -203,7 +203,8 @@ aside {
   float: right;
 }
 
-.input-form .el-input__inner {
+.input-form .el-input__inner,
+.input-form .el-textarea__inner {
   border-left: none !important;
   border-right: none !important;
   border-top: none !important;
