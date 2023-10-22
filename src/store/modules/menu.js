@@ -76,6 +76,8 @@ export const loadView = (view) => { // 路由懒加载
       const path = view.substring(m.length + 2);
       if (m == 'user') //hard code modules here
         return (resolve) => require([`@user/${path}`], resolve)
+      if (m == 'gcp')
+        return (resolve) => require([`@gcp/${path}`], resolve)
     }
   }
   // TODO throw exception?

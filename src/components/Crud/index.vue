@@ -37,10 +37,9 @@
                 <el-button @click="onReset">重置</el-button>
             </el-form-item>
         </el-form>
-        <el-table :data="list" height="500" style="width: 100%" row-key="id" default-expand-all
-            :tree-props="{ children: 'children' }">
-            <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields" v-if="!field.hidden"
-                :key="field.name">
+        <el-table class="main-table" :data="list" row-key="id" default-expand-all :tree-props="{ children: 'children' }">
+            <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
+                v-if="!field.hidden && field.listable" :key="field.name" sortable>
                 <template slot-scope="scope">
                     <span v-if="field.type == 'Enum'">{{ dictionariesMap[field.typeName][scope.row[field.name]] }}</span>
                     <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
@@ -64,23 +63,29 @@
                         </el-dropdown-menu>
                     </el-dropdown>
                 </template>
-
             </el-table-column>
         </el-table>
-        <el-dialog :title="desc" :visible.sync="dialogVisible">
-            <el-form :model="detail" label-position="right" label-width="120px">
-                <el-form-item v-for="field in metadata.fields"
-                    v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)"
-                    :label="field.label">
-                    <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
-                    <el-input v-model="detail[field.name]" v-if="['Integer'].includes(field.type)"
-                        style="width:100px;"></el-input>
-                    <el-input v-model="detail[field.name]" v-if="['String'].includes(field.type)"></el-input>
-                    <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
-                        <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
-                            :label="item.label" :value="item.value" :key="item.value" />
-                    </el-select>
-                </el-form-item>
+        <el-pagination :hide-on-single-page="false" :total="list?.length" layout="prev, pager, next" />
+        <el-dialog :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible">
+            <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
+                class="input-form">
+                <el-row>
+                    <el-col v-for="field in metadata.fields" :span="24 / formCols">
+                        <el-form-item
+                            v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)"
+                            :label="field.label" :prop="field.name">
+                            <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
+                            <el-input v-model="detail[field.name]" v-if="['Integer'].includes(field.type)"
+                                style="width:100px;"></el-input>
+                            <el-input v-model="detail[field.name]" v-if="['String'].includes(field.type)"></el-input>
+                            <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
+                                <el-option
+                                    v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
+                                    :label="item.label" :value="item.value" :key="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="dialogVisible = false">取消</el-button>
@@ -102,7 +107,13 @@
 import { notImplemented, getResult } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
-    props: ['name', 'desc', 'apis', 'actions'],
+    props: {
+        name: {},
+        desc: {},
+        apis: {},
+        actions: {},
+        formCols: { type: Number, default: 1 }
+    },
     components: { RightToolbar },
     data() {
         return {
@@ -111,11 +122,13 @@ export default {
             dictionariesMap: {},
             idField: null,
             searchForm: {},
+            rules: {},
 
             list: [],
             detail: {},
 
             dialogVisible: false,
+            dialogTitle: '',
             deleteConfirmVisible: false,
             searchVisible: false,
             exportLoading: false,
@@ -143,21 +156,27 @@ export default {
         showAddDialog(current) {
             this.detail = { parentId: current ? current[this.idField] : null };
             this.dialogVisible = true;
+            this.dialogTitle = '新建';
+
         },
         showEditDialog(detail) {
             this.detail = { ...detail };
             this.dialogVisible = true;
+            this.dialogTitle = '编辑';
         },
         async save() {
-            let response;
-            if (this.detail[this.idField]) {
-                response = await getResult(this.apis.update(this.detail[this.idField], this.detail));
-            } else {
-                response = await getResult(this.apis.create(this.detail));
-            }
-            this.$message.success('保存成功');
-            await this.getList();
-            this.dialogVisible = false;
+            this.$refs['detail-form'].validate(async (valid) => {
+                if (!valid) return false;
+                let response;
+                if (this.detail[this.idField]) {
+                    response = await getResult(this.apis.update(this.detail[this.idField], this.detail));
+                } else {
+                    response = await getResult(this.apis.create(this.detail));
+                }
+                this.$message.success('保存成功');
+                await this.getList();
+                this.dialogVisible = false;
+            });
         },
         showDeleteConfirm(detail) {
             this.detail = detail;
@@ -174,6 +193,11 @@ export default {
         },
         handleExport() {
             notImplemented(this);
+        },
+        _addRule(name, rule) {
+            if (!this.rules[name])
+                this.rules[name] = [];
+            this.rules[name].push(rule);
         }
     },
     async created() {
@@ -185,6 +209,10 @@ export default {
         this.metadata = metadata.entitiesMap[this.name];
         this.metadata.searchFields = this.metadata.fields.filter(field => field.searchable);
         this.idField = this.metadata.idField;
+        this.metadata.fields.forEach(field => {
+            if (!field.nullable && !field.hidden) this._addRule(field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
+        });
+
         this.dictionaries = metadata.dictionaries;
         for (const [key, dict] of Object.entries(metadata.dictionaries)) {
             var dictMap = {}
@@ -214,7 +242,7 @@ export default {
     color: #409EFF;
 }
 
-.el-table th.el-table__cell {
+.main-table th.el-table__cell {
     background-color: #f8f8f9;
 }
 

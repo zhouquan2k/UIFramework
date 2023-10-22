@@ -57,7 +57,7 @@ const ignoreMsgs = [
   "刷新令牌已过期" // 使用刷新令牌，刷新获取新的访问令牌时，结果因为过期失败，此时需要忽略。否则，会导致继续 401，无法跳转到登出界面
 ];
 
-const errorHandler = async (code, msg, res) => {
+const errorHandler = async (code, msg, error) => {
   console.log('errorHandler: ' + code + ',' + msg);
   if (ignoreMsgs.indexOf(msg) !== -1) { // 如果是忽略的错误码，直接返回 msg 异常
     return Promise.reject(msg)
@@ -105,17 +105,28 @@ const errorHandler = async (code, msg, res) => {
       center: true
     })
     return Promise.reject(new Error(msg))
-  } else if (code !== 200) {  // && code !== 'Ok'
+  } else { //client side exception //if (code !== 200) {  // && code !== 'Ok'
+    let message = msg;
     if (msg === '无效的刷新令牌') { // hard coding：忽略这个提示，直接登出
       console.log(msg)
-    } else {
-      Notification.error({
-        title: msg
-      })
+      return;
     }
-    return Promise.reject('error')
+    if (msg === "Network Error") {
+      message = "后端接口连接异常";
+    } else if (msg?.includes("timeout")) {
+      message = "系统接口请求超时";
+    } else if (msg?.includes("Request failed with status code")) {
+      message = "系统接口" + message.substr(message.length - 3) + "异常";
+    }
+    Message({
+      message: message,
+      type: 'error',
+      duration: 0,
+      showClose: true,
+      center: true
+    })
+    return Promise.reject(error)
   }
-  return false;
 };
 
 
@@ -127,33 +138,15 @@ service.interceptors.response.use(async res => {
   //const msg = res.data.msg || errorCode[code] || errorCode['default']
   if (res.status == 200) return res.data;
   return errorHandler(res.status, res.statusText, res);
-}, error => {
+}, async error => {
   console.log('err: ' + error)
-  var ret = errorHandler(error.response.status, error.response.data ? error.response.data.message : error.message, error.response);
-  if (ret) return ret;
-
-  /* TODO: refactor needed */
-  let { message } = error;
-  if (message === "Network Error") {
-    message = "后端接口连接异常";
-  } else if (message.includes("timeout")) {
-    message = "系统接口请求超时";
-  } else if (message.includes("Request failed with status code")) {
-    message = "系统接口" + message.substr(message.length - 3) + "异常";
-  }
-  Message({
-    message: message,
-    type: 'error',
-    duration: 5 * 1000
-  })
-  return Promise.reject(error)
-}
-)
+  await errorHandler(error.response?.status, error.response?.data ? error.response.data.message : error.message, error);
+})
 
 export function getBaseHeader() {
   return {
     'Authorization': "Bearer " + getAccessToken(),
-    'tenant-id': getTenantId(),
+    // 'tenant-id': getTenantId(),
   }
 }
 

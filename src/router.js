@@ -4,6 +4,7 @@ import Layout from '@/layout'
 // import { title } from '@/settings'
 import { getRoutes as getUserRoutes } from '@user/router'
 import { getRoutes as getAppRoutes } from '@app/router'
+import { getRoutes as getGcpRoutes } from '@gcp/router'
 
 
 export function initRouter() {
@@ -19,6 +20,10 @@ export function initRouter() {
     // 公共路由
     const constantRoutes = [
         testRoute,
+        {
+            path: '/',
+            component: Layout,
+        },
         {
             path: '/hello2',
             component: (resolve) => require(['@/components/HelloWorld'], resolve),
@@ -51,7 +56,7 @@ export function initRouter() {
         */
     ];
 
-    [...getAppRoutes(), ...getUserRoutes()].forEach(r => {
+    [...getAppRoutes(), ...getUserRoutes(), ...getGcpRoutes()].forEach(r => {
         r.meta = { title: r.name };
         testRoute.children.push(r);
     });
