@@ -13,7 +13,6 @@ module.exports = defineConfig({
     resolve: {
       alias: {
         '@': resolve('src'),
-        '@app': resolve('src/app'),
         '@user': resolve('src/user'),
         '@gcp': resolve('src/gcp'),
       },

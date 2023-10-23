@@ -3,7 +3,7 @@ import Layout from '@/layout'
 
 // import { title } from '@/settings'
 import { getRoutes as getUserRoutes } from '@user/router'
-import { getRoutes as getAppRoutes } from '@app/router'
+// import { getRoutes as getAppRoutes } from '@app/router'
 import { getRoutes as getGcpRoutes } from '@gcp/router'
 
 
