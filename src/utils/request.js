@@ -1,6 +1,4 @@
 import axios from 'axios'
-// TODO refactor
-import { Message, MessageBox, Notification } from 'element-ui'
 import store from '@/store'
 
 /*
@@ -97,13 +95,6 @@ const errorHandler = async (code, msg, error) => {
     }
     */
   } else if (code === 500) {
-    Message({
-      message: msg,
-      type: 'error',
-      duration: 0,
-      showClose: true,
-      center: true
-    })
     return Promise.reject(new Error(msg))
   } else { //client side exception //if (code !== 200) {  // && code !== 'Ok'
     let message = msg;
@@ -118,13 +109,6 @@ const errorHandler = async (code, msg, error) => {
     } else if (msg?.includes("Request failed with status code")) {
       message = "系统接口" + message.substr(message.length - 3) + "异常";
     }
-    Message({
-      message: message,
-      type: 'error',
-      duration: 0,
-      showClose: true,
-      center: true
-    })
     return Promise.reject(error)
   }
 };

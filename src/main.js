@@ -27,7 +27,20 @@ const router = new Router({
   scrollBehavior: () => ({ y: 0 }),
   routes: allRoutes
 });
+
+Vue.config.errorHandler = function (err, vm, info) {
+  Element.Message({
+    dangerouslyUseHTMLString: true,
+    message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} ${err?.response?.data.message}`,
+    type: 'error',
+    duration: 0,
+    showClose: true,
+    center: true
+  });
+}
+
 // added by zhouquan ^
+
 
 Vue.config.productionTip = false
 
