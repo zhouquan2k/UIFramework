@@ -18,6 +18,7 @@ Vue.use(Element, {
 
 //global error handler
 Vue.config.errorHandler = function (err, vm, info) {
+  console.error('Vue Error:', err, vm, info);
   Element.Message({
     dangerouslyUseHTMLString: true,
     message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} ${err?.response?.data.message}`,
