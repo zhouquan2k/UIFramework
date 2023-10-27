@@ -95,7 +95,7 @@ const errorHandler = async (code, msg, error) => {
     }
     */
   } else if (code === 500) {
-    return Promise.reject(new Error(msg))
+    return Promise.reject(error);
   } else { //client side exception //if (code !== 200) {  // && code !== 'Ok'
     let message = msg;
     if (msg === '无效的刷新令牌') { // hard coding：忽略这个提示，直接登出

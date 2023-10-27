@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-row :gutter="10" class="grid-toolbar">
+        <el-row class="grid-toolbar">
             <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
                 v-hasPermi="['system:user:create']">新增</el-button>
             <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
@@ -99,7 +99,7 @@
   
 <script>
 
-import { notImplemented, getResult } from "@/utils/utils";
+import { notImplemented, getResult, initMetadata } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
     props: {
@@ -113,9 +113,7 @@ export default {
     data() {
         return {
             metadata: { fields: [] },
-            dictionaries: {},
             dictionariesMap: {},
-            idField: null,
             searchForm: {},
             rules: {},
 
@@ -130,7 +128,6 @@ export default {
         };
     },
     methods: {
-        // TODO
         callMethod(methodName, ...params) {
             if (this.$parent[methodName])
                 this.$parent[methodName](...params);
@@ -142,14 +139,15 @@ export default {
             this.getList();
         },
         async getList() {
-            this.list = await getResult(this.apis.list(), null, this.idField);
+            if (!this.apis) return;
+            this.list = await getResult(this.apis.list(), null, this.metadata.idField);
         },
         async onSearch() {
             if (Object.keys(this.searchForm).length == 0) return this.getList();
-            this.list = await getResult(this.apis.search(this.searchForm), null, this.idField);
+            this.list = await getResult(this.apis.search(this.searchForm), null, this.metadata.idField);
         },
         showAddDialog(current) {
-            this.detail = { parentId: current ? current[this.idField] : null };
+            this.detail = { parentId: current ? current[this.metadata.idField] : null };
             this.dialogVisible = true;
             this.dialogTitle = '新建';
 
@@ -163,8 +161,8 @@ export default {
             this.$refs['detail-form'].validate(async (valid) => {
                 if (!valid) return false;
                 let response;
-                if (this.detail[this.idField]) {
-                    response = await getResult(this.apis.update(this.detail[this.idField], this.detail));
+                if (this.detail[this.metadata.idField]) {
+                    response = await getResult(this.apis.update(this.detail[this.metadata.idField], this.detail));
                 } else {
                     response = await getResult(this.apis.create(this.detail));
                 }
@@ -178,7 +176,7 @@ export default {
             this.deleteConfirmVisible = true;
         },
         async deleteRecord() {
-            const response = await getResult(this.apis.delete(this.detail[this.idField]));
+            const response = await getResult(this.apis.delete(this.detail[this.metadata.idField]));
             this.$message.success('删除成功');
             this.getList();
             this.deleteConfirmVisible = false;
@@ -189,39 +187,15 @@ export default {
         handleExport() {
             notImplemented(this);
         },
-        _addRule(name, rule) {
-            if (!this.rules[name])
-                this.rules[name] = [];
-            this.rules[name].push(rule);
-        }
     },
     async created() {
-        const metadata = await getResult(this.apis.getMetadata());
-        metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
-            obj[item.name] = item;
-            return obj;
-        }, {});
-        this.metadata = metadata.entitiesMap[this.name];
-        this.metadata.searchFields = this.metadata.fields.filter(field => field.searchable);
-        this.idField = this.metadata.idField;
-        this.metadata.fields.forEach(field => {
-            if (!field.nullable && !field.hidden) this._addRule(field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
-        });
-
-        this.dictionaries = metadata.dictionaries;
-        for (const [key, dict] of Object.entries(metadata.dictionaries)) {
-            var dictMap = {}
-            for (var item of dict) {
-                dictMap[item.value] = item.label;
-            }
-            this.dictionariesMap[key] = dictMap;
-        }
+        await initMetadata(this, this.apis, this.name);
         this.getList();
     }
 };
 </script>
   
-<style >
+<style scoped>
 .el-form-item {
     margin-right: 10px;
 }
@@ -237,12 +211,9 @@ export default {
     color: #409EFF;
 }
 
-.main-table th.el-table__cell {
-    background-color: #f8f8f9;
-}
-
 .search-form {
-    margin: 2px;
+    margin-top: 5px;
+    margin-top: 5px;
 }
 
 .search-input {
@@ -250,7 +221,8 @@ export default {
 }
 
 .grid-toolbar {
-    margin: 10px;
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
 </style>
   

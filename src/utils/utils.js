@@ -9,6 +9,38 @@ export function safeGet(o, path){
 //TODO safeSet
 */
 
+export async function initMetadata(object, apis, name) {
+  const metadata = await getResult(apis.getMetadata());
+  metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
+    obj[item.name] = item;
+    return obj;
+  }, {});
+  const ret_metadata = metadata.entitiesMap[name];
+  ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
+  ret_metadata.fields.forEach(field => {
+    if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
+  });
+  object.metadata = ret_metadata;
+
+  object.dictionaries = metadata.dictionaries;
+  if (object.dictionariesMap) {
+    for (const [key, dict] of Object.entries(metadata.dictionaries)) {
+      var dictMap = {}
+      for (var item of dict) {
+        dictMap[item.value] = item.label;
+      }
+      object.dictionariesMap[key] = dictMap;
+    }
+  }
+}
+
+function _addRule(object, name, rule) {
+  if (!object.rules) return;
+  if (!object.rules[name])
+    object.rules[name] = [];
+  object.rules[name].push(rule);
+}
+
 export const defaultCrudActions = [
   {
     desc: "修改",
@@ -72,7 +104,7 @@ export async function getResult(promise, loading, idField) {
   const resetFlag = (obj, loading) => { if (obj && loading) obj[loading] = false };
   //树形结构需要每行有一个id，且还只能是固定的名字
   const mappingId = (idField, result) => {
-    if (!idField) return;
+    if (!idField || !result) return;
     if (Array.isArray(result)) {
       result.forEach(item => mappingId(idField, item));
     }
