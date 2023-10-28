@@ -66,10 +66,10 @@
                 class="input-form">
                 <el-row>
                     <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
-                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text'].includes(field.type)">
+                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal'].includes(field.type)">
                         <el-form-item :label="field.label" :prop="field.name">
                             <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
-                            <el-input v-model="detail[field.name]" v-if="['Integer'].includes(field.type)"
+                            <el-input v-model="detail[field.name]" v-if="['Integer', 'Decimal'].includes(field.type)"
                                 style="width:100px;"></el-input>
                             <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
                                 v-if="['String', 'Text'].includes(field.type)"></el-input>
@@ -99,15 +99,23 @@
   
 <script>
 
-import { notImplemented, getResult, initMetadata } from "@/utils/utils";
+import { notImplemented, getResult, initMetadata, defaultCrudActions } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
     props: {
         name: {},
         desc: {},
         apis: {},
-        actions: {},
+        actions: { default: () => defaultCrudActions },
         formCols: { type: Number, default: 1 }
+    },
+    watch: {
+        apis: {
+            async handler(newVal) {
+                console.log('api changed:', newVal);
+                await this.getList();
+            }
+        }
     },
     components: { RightToolbar },
     data() {

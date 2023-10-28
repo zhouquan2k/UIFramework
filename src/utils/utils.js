@@ -15,12 +15,14 @@ export async function initMetadata(object, apis, name) {
     obj[item.name] = item;
     return obj;
   }, {});
-  const ret_metadata = metadata.entitiesMap[name];
-  ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
-  ret_metadata.fields.forEach(field => {
-    if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
-  });
-  object.metadata = ret_metadata;
+  if (name) {
+    const ret_metadata = metadata.entitiesMap[name];
+    ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
+    ret_metadata.fields.forEach(field => {
+      if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
+    });
+    object.metadata = ret_metadata;
+  }
 
   object.dictionaries = metadata.dictionaries;
   if (object.dictionariesMap) {
@@ -31,6 +33,7 @@ export async function initMetadata(object, apis, name) {
       }
       object.dictionariesMap[key] = dictMap;
     }
+    console.log('DictionariesMap: ', object.dictionariesMap);
   }
 }
 
@@ -124,6 +127,10 @@ export function moneyFormatter(x, y, value) {
 
 export function booleanFormatter(value) {
   return value ? "是" : "否";
+}
+
+export function dictFormatter(type, value) {
+  return this.dictionariesMap[type][value];
 }
 
 export function startTime(d, days = 0) {
