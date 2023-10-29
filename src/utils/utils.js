@@ -127,6 +127,11 @@ export function moneyFormatter(x, y, value) {
   return value ? value.toFixed(2) : '';
 }
 
+export function dateFormatter(x, y, value) {
+  return value?.substring(0, 10);
+}
+
+//TODO is really formatter?
 export function booleanFormatter(value) {
   return value ? "是" : "否";
 }
