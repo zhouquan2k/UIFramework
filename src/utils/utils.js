@@ -34,6 +34,8 @@ export async function initMetadata(object, apis, name) {
       object.dictionariesMap[key] = dictMap;
     }
     console.log('DictionariesMap: ', object.dictionariesMap);
+    console.log('Entity: ', object.metadata);
+    console.log('Rules: ', object.rules);
   }
 }
 
