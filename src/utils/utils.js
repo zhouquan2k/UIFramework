@@ -29,7 +29,7 @@ export async function initMetadata(object, apis, name) {
     for (const [key, dict] of Object.entries(metadata.dictionaries)) {
       var dictMap = {}
       for (var item of dict) {
-        dictMap[item.value] = item.label;
+        dictMap[item.value] = { label: item.label, tag: item.tag };
       }
       object.dictionariesMap[key] = dictMap;
     }

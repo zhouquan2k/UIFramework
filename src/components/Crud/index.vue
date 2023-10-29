@@ -36,7 +36,9 @@
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
                 v-if="!field.hidden && field.listable" :key="field.name" sortable>
                 <template slot-scope="scope">
-                    <span v-if="field.type == 'Enum'">{{ dictionariesMap[field.typeName][scope.row[field.name]] }}</span>
+                    <el-tag v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
+                        :type="dictionariesMap[field.typeName][scope.row[field.name]].tag">{{
+                            dictionariesMap[field.typeName][scope.row[field.name]].label }}</el-tag>
                     <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
                         item[field.refData])?.join(" ") }}</span>
                     <span v-else>{{ scope.row[field.name] }}</span>
