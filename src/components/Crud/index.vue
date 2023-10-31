@@ -1,37 +1,45 @@
 <template>
     <div>
-        <el-row class="grid-toolbar">
-            <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
-                v-hasPermi="['system:user:create']">新增</el-button>
-            <el-button type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
-                v-hasPermi="['system:user:import']">导入</el-button>
-            <el-button type="warning" icon="el-icon-download" size="mini" @click="handleExport" :loading="exportLoading"
-                v-hasPermi="['system:user:export']">导出</el-button>
-            <slot></slot>
-            <right-toolbar :showSearch.sync="searchVisible" @queryTable="getList"
+        <div class="grid-toolbar">
+            <div style="display: flex;">
+                <el-button v-if="buttons.add" type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
+                    v-hasPermi="['system:user:create']">新增</el-button>
+                <el-button v-if="buttons.export" type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
+                    v-hasPermi="['system:user:import']">导入</el-button>
+                <el-button v-if="buttons.export" type="warning" icon="el-icon-download" size="mini" @click="handleExport"
+                    :loading="exportLoading" v-hasPermi="['system:user:export']">导出</el-button>
+                <slot name="buttons">
+                </slot>
+                <i v-if="metadata.searchFields?.length > 0" class="el-icon-arrow-right"
+                    style="color:#409EFF;margin-top:5px;margin-left:5px;" @click="searchVisible = !searchVisible"></i>
+                <el-form v-show="searchVisible" inline class="search-form" v-model="searchForm">
+                    <slot name="searches">
+                    </slot>
+                    <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
+                    <el-form-item v-for="field in metadata.searchFields"
+                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)">
+                        <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)"
+                            class="search-input" :placeholder="field.label" />
+                        <el-input v-model="searchForm[field.name]" v-if="['Integer'].includes(field.type)"
+                            class="search-input" :placeholder="field.label"></el-input>
+                        <el-input v-model="searchForm[field.name]" v-if="['String'].includes(field.type)"
+                            :placeholder="field.label" class="search-input" />
+                        <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
+                            value="" :placeholder="field.label" class="search-input">
+                            <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
+                                :label="item.label" :value="item.value" :key="`search-${item.value}`" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="onSearch">搜索</el-button>
+                        <el-button @click="onReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+            <right-toolbar style="display: flex;" :showSearch.sync="searchVisible" @queryTable="getList"
                 :columns="metadata.fields"></right-toolbar>
-        </el-row>
-        <el-form v-if="metadata.searchFields?.length" v-show="searchVisible" inline class="search-form"
-            v-model="searchForm">
-            <el-form-item v-for="field in metadata.searchFields"
-                v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)">
-                <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)" class="search-input"
-                    :placeholder="field.label" />
-                <el-input v-model="searchForm[field.name]" v-if="['Integer'].includes(field.type)" class="search-input"
-                    :placeholder="field.label"></el-input>
-                <el-input v-model="searchForm[field.name]" v-if="['String'].includes(field.type)" :placeholder="field.label"
-                    class="search-input" />
-                <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)" value=""
-                    :placeholder="field.label" class="search-input">
-                    <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
-                        :label="item.label" :value="item.value" :key="`search-${item.value}`" />
-                </el-select>
-            </el-form-item>
-            <el-form-item>
-                <el-button type="primary" @click="onSearch">搜索</el-button>
-                <el-button @click="onReset">重置</el-button>
-            </el-form-item>
-        </el-form>
+        </div>
+
         <el-table class="main-table" :data="list" row-key="id" default-expand-all :tree-props="{ children: 'children' }">
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
                 v-if="!field.hidden && field.listable" :key="field.name" sortable>
@@ -39,23 +47,31 @@
                     <el-tag v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
                         :type="dictionariesMap[field.typeName][scope.row[field.name]].tag">{{
                             dictionariesMap[field.typeName][scope.row[field.name]].label }}</el-tag>
+                    <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
+                        {{ safeGet(scope.row, field.refData) }}</span>
                     <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
                         item[field.refData])?.join(" ") }}</span>
+                    <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
+                        scope.row[field.name])
+                    }}</span>
                     <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="操作" fixed="right" width="280">
                 <template slot-scope="scope">
-                    <el-button v-for="action in actions.slice(0, 2)" type="text"
+                    <el-button v-for="action in actions.slice(0, actionCntToHide)"
+                        v-if="!action.available || action.available(scope.row)" type="text" :style="action.style"
                         @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
-                    <el-dropdown v-if="actions.length > 2" @command="(command) => callMethod(command, scope.row)">
+                    <el-dropdown v-if="actions.length > actionCntToHide"
+                        @command="(command) => callMethod(command, scope.row)">
                         <span class="el-dropdown-link">
                             更多<i class="el-icon-d-arrow-right el-icon--left" />
                         </span>
                         <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item v-for="action in actions.slice(2)" :command="action.method" size="mini"
-                                type="text" :icon="action.icon" v-hasPermi="['system:user:delete']">{{ action.desc
+                            <el-dropdown-item v-for="action in actions.slice(actionCntToHide)" :command="action.method"
+                                size="mini" type="text" :icon="action.icon" v-hasPermi="['system:user:delete']">{{
+                                    action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
@@ -101,22 +117,31 @@
   
 <script>
 
-import { notImplemented, getResult, initMetadata, defaultCrudActions } from "@/utils/utils";
+import { notImplemented, getResult, initMetadata, defaultCrudActions, dateFormatter, safeGet } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
     props: {
         name: {},
         desc: {},
         apis: {},
+        searchVisible: { default: () => false },
         actions: { default: () => defaultCrudActions },
-        formCols: { type: Number, default: 1 }
+        buttons: { default: () => ({ add: true, 'export': true }) },
+        searches: { default: () => [] },
+        formCols: { type: Number, default: 1 },
+        actionCntToHide: { default: () => 2 },
     },
     watch: {
         apis: {
             async handler(newVal) {
-                console.log('api changed:', newVal);
                 await this.getList();
-            }
+            },
+        },
+        searches: {
+            handler(newVal) {
+                Object.assign(this.searchForm, newVal);
+            },
+            deep: true,
         }
     },
     components: { RightToolbar },
@@ -133,8 +158,9 @@ export default {
             dialogVisible: false,
             dialogTitle: '',
             deleteConfirmVisible: false,
-            searchVisible: false,
             exportLoading: false,
+
+            dateFormatter, safeGet
         };
     },
     methods: {
@@ -210,11 +236,6 @@ export default {
     margin-right: 10px;
 }
 
-.el-form-item--mini.el-form-item,
-.el-form-item--small.el-form-item {
-    margin-bottom: 5px;
-}
-
 .el-dropdown-link {
     margin-left: 10px;
     font-size: 12px;
@@ -222,15 +243,26 @@ export default {
 }
 
 .search-form {
-    margin-top: 5px;
-    margin-top: 5px;
+    margin-left: 10px;
+    margin-right: auto;
+    margin-top: -2px;
 }
 
 .search-input {
     width: 100px;
+    line-height: 20px;
+    height: 28px;
+}
+
+.search-input>>>.el-input--small .el-input__inner {
+    height: 28px;
+    line-height: 28px;
 }
 
 .grid-toolbar {
+    display: flex;
+    justify-content: space-between;
+    height: 30px;
     margin-top: 3px;
     margin-bottom: 3px;
 }

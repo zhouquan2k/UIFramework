@@ -2,12 +2,10 @@ import _request from '@/utils/request'
 import store from '@/store'
 // import { routes } from './router'
 
-/* 使用lodash _.get(project,'undertaker.departmentLead')， 已放入vue
-export function safeGet(o, path){
-   return path.split('.').reduce((o={},b)=>o[b],0);
+// 也可以使用lodash _.get(project,'a.b')， 已放入vue
+export function safeGet(o, path) {
+  return path.split('.').reduce((o = {}, b) => o[b], o);
 }
-//TODO safeSet
-*/
 
 export async function initMetadata(object, apis, name) {
   const metadata = await getResult(apis.getMetadata());
