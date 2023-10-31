@@ -26,8 +26,8 @@
                             :placeholder="field.label" class="search-input" />
                         <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
                             value="" :placeholder="field.label" class="search-input">
-                            <el-option v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
-                                :label="item.label" :value="item.value" :key="`search-${item.value}`" />
+                            <el-option v-for="item in dictionaries[field.typeName]" :label="item.label" :value="item.value"
+                                :key="`search-${item.value}`" />
                         </el-select>
                     </el-form-item>
                     <el-form-item>
@@ -46,7 +46,8 @@
                 <template slot-scope="scope">
                     <el-tag v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
                         :type="dictionariesMap[field.typeName][scope.row[field.name]].tag">{{
-                            dictionariesMap[field.typeName][scope.row[field.name]].label }}</el-tag>
+                            dictionariesMap[field.typeName][scope.row[field.name]].label
+                        }}</el-tag>
                     <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
                         {{ safeGet(scope.row, field.refData) }}</span>
                     <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
@@ -92,9 +93,8 @@
                             <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
                                 v-if="['String', 'Text'].includes(field.type)"></el-input>
                             <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
-                                <el-option
-                                    v-for="item in dictionaries[field.type == 'Enum' ? field.typeName : field.refData]"
-                                    :label="item.label" :value="item.value" :key="item.value" />
+                                <el-option v-for="item in dictionaries[field.typeName]" :label="item.label"
+                                    :value="item.value" :key="item.value" />
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -124,10 +124,11 @@ export default {
         name: {},
         desc: {},
         apis: {},
+        initList: { default: () => true, },
         searchVisible: { default: () => false },
         actions: { default: () => defaultCrudActions },
         buttons: { default: () => ({ add: true, 'export': true }) },
-        searches: { default: () => [] },
+        searches: { default: () => { } },
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
     },
@@ -226,7 +227,7 @@ export default {
     },
     async created() {
         await initMetadata(this, this.apis, this.name);
-        this.getList();
+        if (this.initList) this.getList();
     }
 };
 </script>
