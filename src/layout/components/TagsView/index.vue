@@ -65,7 +65,8 @@ export default {
   },
   methods: {
     isActive(route) {
-      return route.path === this.$route.path
+      // return route.path === this.$route.path
+      return route.name === this.$route.name;
     },
     activeStyle(tag) {
       if (!this.isActive(tag)) return {};
@@ -126,11 +127,10 @@ export default {
     addTags() {
       const { name } = this.$route
       if (name) {
-        console.log(this.visitedViews);
-        //let dups = this.visitedViews.filter(view => this.$route.path.startsWith(view.path) && this.$route.path.substring(view.path.length).startsWith('?'));
-        let dups = this.visitedViews.filter(view => view.name == name);
+        //console.log(this.visitedViews);
+        //let dups = this.visitedViews.filter(view => view.name == name);
         //去掉重复名字的标签
-        dups.forEach(view => this.$store.dispatch('tagsView/delView', view));
+        //dups.forEach(view => this.$store.dispatch('tagsView/delView', view));
         this.$store.dispatch('tagsView/addView', this.$route)
       }
       return false
