@@ -1,4 +1,3 @@
-import { initRouter } from '@/router'
 const getters = {
   sidebar: state => state.app.sidebar,
   size: state => state.app.size,
@@ -14,7 +13,7 @@ const getters = {
   roles: state => state.user.roles,
   permissions: state => ["*:*:*"], // TODO state.user.permissions,
   // 工具栏
-  routes: state => [], // state.menu.routes, // state.routes,
+  routes: state => state.menu.routes, // state.routes,
   menus: state => state.menu.menus,
   topbarRouters: state => [],  //state.permission.topbarRouters,
   defaultRoutes: state => [],  //state.permission.defaultRoutes,

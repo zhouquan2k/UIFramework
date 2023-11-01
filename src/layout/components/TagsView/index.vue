@@ -37,10 +37,10 @@ export default {
   },
   computed: {
     visitedViews() {
-      return this.$store.state.tagsView.visitedViews
+      return this.$store.state.tagsView.visitedViews;
     },
     routes() {
-      return this.$store.state.permission.routes
+      return this.$store.state.menu.routes;
     },
     theme() {
       return this.$store.state.settings.theme;
@@ -69,10 +69,12 @@ export default {
     },
     activeStyle(tag) {
       if (!this.isActive(tag)) return {};
-      return {
+      return {};
+      /*
         "background-color": this.theme,
         "border-color": this.theme
       };
+      */
     },
     isAffix(tag) {
       return tag.meta && tag.meta.affix
@@ -124,12 +126,17 @@ export default {
     addTags() {
       const { name } = this.$route
       if (name) {
+        console.log(this.visitedViews);
+        //let dups = this.visitedViews.filter(view => this.$route.path.startsWith(view.path) && this.$route.path.substring(view.path.length).startsWith('?'));
+        let dups = this.visitedViews.filter(view => view.name == name);
+        //去掉重复名字的标签
+        dups.forEach(view => this.$store.dispatch('tagsView/delView', view));
         this.$store.dispatch('tagsView/addView', this.$route)
       }
       return false
     },
     moveToCurrentTag() {
-      const tags = this.$refs.tag
+      const tags = !this.$refs.tag ? [] : (Array.isArray(this.$refs.tag) ? this.$refs.tag : [this.$refs.tag]);
       this.$nextTick(() => {
         for (const tag of tags) {
           if (tag.to.path === this.$route.path) {
@@ -227,27 +234,33 @@ export default {
 .tags-view-container {
   height: 34px;
   width: 100%;
+  margin-bottom: 5px;
   background: #fff;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
   border-bottom: 1px solid #d8dce5;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 0 3px 0 rgba(0, 0, 0, .04);
+  box-shadow: 0px 8px 6px -6px rgba(0, 0, 0, .12), 0px 8px 6px -6px rgba(0, 0, 0, .04);
 
   .tags-view-wrapper {
     .tags-view-item {
       display: inline-block;
       position: relative;
       cursor: pointer;
-      height: 26px;
-      line-height: 26px;
+      height: 30px;
+      line-height: 30px;
       border: 1px solid #d8dce5;
       color: #495060;
       background: #fff;
-      padding: 0 8px;
+      padding: 0 2px 0 10px;
       font-size: 12px;
       margin-left: 5px;
       margin-top: 4px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
 
       &:first-of-type {
-        margin-left: 15px;
+        margin-left: 5px;
       }
 
       &:last-of-type {
@@ -255,13 +268,13 @@ export default {
       }
 
       &.active {
-        background-color: #42b983;
-        color: #fff;
-        border-color: #42b983;
+        background-color: #ecf5ff;
+        color: #409EFF;
+        border-color: #b3d8ff;
 
         &::before {
           content: '';
-          background: #fff;
+          background: #409EFF;
           display: inline-block;
           width: 8px;
           height: 8px;
@@ -304,11 +317,13 @@ export default {
 .tags-view-wrapper {
   .tags-view-item {
     .el-icon-close {
+      margin-left: 5px;
+      margin-right: 0px;
       width: 16px;
       height: 16px;
       vertical-align: 2px;
       border-radius: 50%;
-      text-align: center;
+      text-align: right;
       transition: all .3s cubic-bezier(.645, .045, .355, 1);
       transform-origin: 100% 50%;
 

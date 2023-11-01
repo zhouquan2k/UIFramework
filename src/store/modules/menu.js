@@ -6,6 +6,7 @@ import Layout from '@/layout/index'
 const menus = {
   state: {
     menus: [],
+    routes: [],
   },
   mutations: {
     SET_MENUS: (state, menus) => {
@@ -52,6 +53,7 @@ const menus = {
           const sidebarMenu = [constantRouteToMenus(), ...convertedMenus.children];
           const routes = menusToRoutes(convertedMenus.children);
           commit('SET_MENUS', sidebarMenu);
+          commit('SET_ROUTES', routes);
 
           resolve(routes);
         })
@@ -60,6 +62,7 @@ const menus = {
   }
 }
 
+// menu is route now
 function menusToRoutes(menus) {
   return menus;
 }
