@@ -5,9 +5,9 @@ const state = {
 
 const mutations = {
   ADD_VISITED_VIEW: (state, view) => {
-    // if (state.visitedViews.some(v => v.path === view.path)) return
+    if (state.visitedViews.some(v => v.path === view.path)) return
     // 避免添加重复名称的标签页
-    if (state.visitedViews.some(v => v.name === view.name)) return
+    //if (state.visitedViews.some(v => v.name === view.name)) return
     state.visitedViews.push(
       Object.assign({}, view, {
         title: view.meta.title || 'no-name'

@@ -65,8 +65,8 @@ export default {
   },
   methods: {
     isActive(route) {
-      // return route.path === this.$route.path
-      return route.name === this.$route.name;
+      return route.path === this.$route.path
+      //return route.name === this.$route.name;
     },
     activeStyle(tag) {
       if (!this.isActive(tag)) return {};

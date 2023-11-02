@@ -41,6 +41,9 @@ const router = new Router({
   routes: allRoutes
 });
 
+import plugins from './plugins'; // plugins
+Vue.use(plugins);
+
 // added by zhouquan ^
 
 

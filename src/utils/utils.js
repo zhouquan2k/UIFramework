@@ -7,6 +7,10 @@ export function safeGet(o, path) {
   return path.split('.').reduce((o = {}, b) => o[b], o);
 }
 
+export function check(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
 export async function initMetadata(object, apis, name) {
   const metadata = await getResult(apis.getMetadata());
   metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
@@ -15,6 +19,7 @@ export async function initMetadata(object, apis, name) {
   }, {});
   if (name) {
     const ret_metadata = metadata.entitiesMap[name];
+    check(ret_metadata != null, `can't find ${name} in ${apis.baseUrl}`)
     ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
     ret_metadata.fields.forEach(field => {
       if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });

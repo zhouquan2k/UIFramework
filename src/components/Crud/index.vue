@@ -12,7 +12,8 @@
                 </slot>
                 <i v-if="metadata.searchFields?.length > 0" class="el-icon-arrow-right"
                     style="color:#409EFF;margin-top:5px;margin-left:5px;" @click="searchVisible = !searchVisible"></i>
-                <el-form v-show="searchVisible" inline class="search-form" v-model="searchForm">
+                <el-form v-show="searchVisible && metadata.searchFields?.length > 0" inline class="search-form"
+                    v-model="searchForm">
                     <slot name="searches">
                     </slot>
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
