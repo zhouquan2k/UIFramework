@@ -11,12 +11,15 @@ export function check(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-export async function initMetadata(object, apis, name) {
-  const metadata = await getResult(apis.getMetadata());
-  metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
-    obj[item.name] = item;
-    return obj;
-  }, {});
+export async function initMetadata(object, apis, name, metadata) {
+  if (!metadata) {
+    metadata = await getResult(apis.getMetadata());
+    metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
+      obj[item.name] = item;
+      return obj;
+    }, {});
+    object.allMetadata = metadata; // pass to downstream
+  }
   if (name) {
     const ret_metadata = metadata.entitiesMap[name];
     check(ret_metadata != null, `can't find ${name} in ${apis.baseUrl}`)
@@ -26,8 +29,8 @@ export async function initMetadata(object, apis, name) {
     });
     object.metadata = ret_metadata;
   }
-
   object.dictionaries = metadata.dictionaries;
+
   if (object.dictionariesMap) {
     for (const [key, dict] of Object.entries(metadata.dictionaries)) {
       var dictMap = {}
@@ -36,9 +39,10 @@ export async function initMetadata(object, apis, name) {
       }
       object.dictionariesMap[key] = dictMap;
     }
-    console.log('DictionariesMap: ', object.dictionariesMap);
-    console.log('Entity: ', object.metadata);
-    console.log('Rules: ', object.rules);
+    const componentName = object.$options.name
+    console.log(`${componentName}.${name} DictionariesMap: `, object.dictionariesMap);
+    console.log(`${componentName}.${name} Entity: `, object.metadata);
+    console.log(`${componentName}.${name} Rules: `, object.rules);
   }
 }
 

@@ -41,7 +41,10 @@
                 :columns="metadata.fields"></right-toolbar>
         </div>
 
-        <el-table class="main-table" :data="list" row-key="id" default-expand-all :tree-props="{ children: 'children' }">
+        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" row-key="id" default-expand-all
+            :tree-props="{ children: 'children' }" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
+            :row-class-name="rowClassName">
+            <el-table-column v-if="checkbox" type="selection" width="55" />
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
                 v-if="!field.hidden && field.listable" :key="field.name" sortable>
                 <template slot-scope="scope">
@@ -59,7 +62,7 @@
                     <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" fixed="right" width="280">
+            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="280">
                 <template slot-scope="scope">
                     <el-button v-for="action in actions.slice(0, actionCntToHide)"
                         v-if="!action.available || action.available(scope.row)" type="text" :style="action.style"
@@ -121,10 +124,13 @@
 import { notImplemented, getResult, initMetadata, defaultCrudActions, dateFormatter, safeGet } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
+    name: 'Crud',
     props: {
         name: {},
         desc: {},
         apis: {},
+        checkbox: { default: () => false },
+        metadataParam: {},
         initList: { default: () => true, },
         searchVisible: { default: () => false },
         actions: { default: () => defaultCrudActions },
@@ -132,6 +138,7 @@ export default {
         searches: { default: () => { } },
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
+        rowClassName: { default: () => null },
     },
     watch: {
         apis: {
@@ -162,7 +169,8 @@ export default {
             deleteConfirmVisible: false,
             exportLoading: false,
 
-            dateFormatter, safeGet
+            dateFormatter, safeGet,
+            tableUpdateKey: 2617,
         };
     },
     methods: {
@@ -225,9 +233,19 @@ export default {
         handleExport() {
             notImplemented(this);
         },
+        handleSelectionChange(data) {
+            this.$emit('selection-change', data);
+        },
+        handleDblClick(data) {
+            this.$emit('row-dblclick', data);
+        },
+        refreshTable() {
+            this.tableUpdateKey++;
+        }
     },
     async created() {
-        await initMetadata(this, this.apis, this.name);
+        await initMetadata(this, this.apis, this.name, this.metadataParam);
+        Object.assign(this.searchForm, this.searches);
         if (this.initList) this.getList();
     }
 };
