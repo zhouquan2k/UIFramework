@@ -4,6 +4,7 @@ const RefreshTokenKey = 'REFRESH_TOKEN'
 
 // ========== Token 相关 ==========
 
+// TODO should rename to local storage?
 export function getAccessToken() {
     return localStorage.getItem(AccessTokenKey)
 }

@@ -1,6 +1,6 @@
 import _request from '@/utils/request'
 import store from '@/store'
-// import { routes } from './router'
+import { getAccessToken } from '@/utils/auth'
 
 // 也可以使用lodash _.get(project,'a.b')， 已放入vue
 export function safeGet(o, path) {
@@ -111,6 +111,10 @@ export function request(options) {
       globalErrorHandler(error);
     throw error;
   });
+}
+
+export function getAuthHeader() {
+  return { 'Authorization': 'Bearer ' + getAccessToken() };
 }
 
 export function hasPermission(permission) {

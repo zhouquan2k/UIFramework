@@ -22,5 +22,12 @@ module.exports = defineConfig({
     client: {
       overlay: false
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:58080', // 后端服务器地址
+        changeOrigin: true, // 如果接口跨域，需要进行这个参数配置
+        // pathRewrite: { '^/api': '' } // 如果后端接口没有/api需要通过pathRewrite来重写地址
+      },
+    },
   },
 });
