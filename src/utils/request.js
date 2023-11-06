@@ -1,21 +1,15 @@
 import axios from 'axios'
 import store from '@/store'
+import { getAccessToken, getRefreshToken, setToken } from '@/utils/auth'
 
-/*
-import {getAccessToken, getRefreshToken, getTenantId, setToken} from '@/utils/auth'
-import errorCode from '@/utils/errorCode'
-import {getPath, getTenantEnable} from "@/utils/ruoyi";
-import {refreshToken} from "@/api/login";
-
-
-// 是否显示重新登录
-export let isRelogin = { show: false };
 // Axios 无感知刷新令牌，参考 https://www.dashingdog.cn/article/11 与 https://segmentfault.com/a/1190000020210980 实现
+// 是否显示重新登录
+// TODO
+let isRelogin = { show: false };
 // 请求队列
 let requestList = []
 // 是否正在刷新中
-let isRefreshToken = false
-*/
+let isRefreshToken = false;
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 创建axios实例
@@ -26,27 +20,17 @@ const service = axios.create({
   timeout: 30000,
   // 禁用 Cookie 等信息
   withCredentials: false,
-})
+});
 // request拦截器
 service.interceptors.request.use(config => {
   // 是否需要设置 token
-  /*
-  const isToken = (config.headers || {}).isToken === false
-  if (getAccessToken() && !isToken) {
+  if (getAccessToken()) {
     config.headers['Authorization'] = 'Bearer ' + getAccessToken() // 让每个请求携带自定义token 请根据实际情况自行修改
   }
-  // 设置租户
-  if (getTenantEnable()) {
-    const tenantId = getTenantId();
-    if (tenantId) {
-      config.headers['tenant-id'] = tenantId;
-    }
-  }
-  */
   return config
 }, error => {
   console.log(error)
-  Promise.reject(error)
+  throw error;
 })
 
 // 需要忽略的提示。忽略后，自动 Promise.reject('error')
@@ -60,8 +44,8 @@ const errorHandler = async (code, msg, error) => {
   if (ignoreMsgs.indexOf(msg) !== -1) { // 如果是忽略的错误码，直接返回 msg 异常
     return Promise.reject(msg)
   } else if (code === 401) {
+    // return Promise.reject(error); //TODO
     // 如果未认证，并且未进行刷新令牌，说明可能是访问令牌过期了
-    /*
     if (!isRefreshToken) {
       isRefreshToken = true;
       // 1. 如果获取不到刷新令牌，则只能执行登出操作
@@ -86,14 +70,16 @@ const errorHandler = async (code, msg, error) => {
       }
     } else {
       // 添加到队列，等待刷新获取到新的令牌
+      /*
       return new Promise(resolve => {
         requestList.push(() => {
           res.config.headers['Authorization'] = 'Bearer ' + getAccessToken() // 让每个请求携带自定义token 请根据实际情况自行修改
           resolve(service(res.config))
         })
       })
+      */
+      Promise.reject(error);
     }
-    */
   } else if (code === 500) {
     return Promise.reject(error);
   } else { //client side exception //if (code !== 200) {  // && code !== 'Ok'
@@ -120,20 +106,22 @@ service.interceptors.response.use(async res => {
   //const code = res.data.code || 200;
   // 获取错误信息
   //const msg = res.data.msg || errorCode[code] || errorCode['default']
-  if (res.status == 200) return res.data;
-  return errorHandler(res.status, res.statusText, res);
+  //if (res.status == 200)
+  return res.data;
+  //return errorHandler(res.status, res.statusText, res);
 }, async error => {
   console.log('err: ' + error)
-  await errorHandler(error.response?.status, error.response?.data ? error.response.data.message : error.message, error);
+  return await errorHandler(error.response?.status, error.response?.data ? error.response.data.message : error.message, error);
 })
 
 export function getBaseHeader() {
   return {
     'Authorization': "Bearer " + getAccessToken(),
-    // 'tenant-id': getTenantId(),
   }
 }
 
+import { MessageBox } from 'element-ui'
+import vue from '@/main';
 function handleAuthorized() {
   if (!isRelogin.show) {
     isRelogin.show = true;
@@ -145,13 +133,16 @@ function handleAuthorized() {
     ).then(() => {
       isRelogin.show = false;
       store.dispatch('LogOut').then(() => {
-        location.href = getPath('/home');
+        console.log(vue, vue.$route.fullPath);
+        location.href = '/login?from=' + vue.$route.fullPath;
       })
     }).catch(() => {
       isRelogin.show = false;
     });
   }
-  return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
+  const error = new Error('无效的会话，或者会话已过期，请重新登录。')
+  error._handled = true;
+  return Promise.reject(error);
 }
 
 export default service;

@@ -12,46 +12,50 @@ export default class CrudApi {
         });
     }
 
-    async get(id) {
+    async get(id, options) {
         return await request({
             url: `${this.baseUrl}/${id}`,
             method: 'get',
+            ...options
         });
     }
 
-    async search(object) {
+    async search(object, options) {
         return await request({
             url: `${this.baseUrl}/search`,
             method: 'post',
-            data: object
+            data: object,
+            ...options
         });
     }
 
-    async list() {
+    async list(options) {
         return await request({
             url: `${this.baseUrl}`,
             method: 'get',
+            ...options
         });
     }
 
-    async create(object) {
+    async create(object, options) {
         return await request({
             url: `${this.baseUrl}`,
             method: 'post',
             data: object
         });
     }
-    async update(id, object) {
+    async update(object, options) {
         return await request({
-            url: `${this.baseUrl}/${id}`,
+            url: `${this.baseUrl}`,
             method: 'put',
             data: object
         });
     }
-    async delete(id) {
+    async delete(id, options) {
         return await request({
             url: `${this.baseUrl}/${id}`,
-            method: 'delete'
+            method: 'delete',
+            ...options
         });
     }
 }

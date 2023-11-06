@@ -25,6 +25,10 @@ export function initRouter() {
             component: Layout,
         },
         {
+            path: '/login',
+            component: (resolve) => require(['@user/login'], resolve),
+        },
+        {
             path: '/hello2',
             component: (resolve) => require(['@/components/HelloWorld'], resolve),
         },

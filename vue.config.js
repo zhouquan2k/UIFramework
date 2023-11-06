@@ -17,5 +17,10 @@ module.exports = defineConfig({
         '@gcp': resolve('src/gcp'),
       },
     }
-  }
+  },
+  devServer: {
+    client: {
+      overlay: false
+    },
+  },
 });

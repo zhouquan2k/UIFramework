@@ -1,10 +1,11 @@
-// import {login, logout, getInfo, socialLogin, socialBindLogin, smsLogin} from '@/api/login'
-// import {getAccessToken, setToken, removeToken, getRefreshToken} from '@/utils/auth'
+import { login, logout, getInfo } from '@user/security_api.js';
+import { getAccessToken, setToken, removeToken, getRefreshToken } from '@/utils/auth'
 
 const user = {
   state: {
     id: 0, // 用户编号
-    name: '',
+    name: '', //login name
+    nickname: '',//username
     avatar: '',
     roles: [],
     permissions: []
@@ -37,26 +38,36 @@ const user = {
   actions: {
     // 登录
     Login({ commit }, userInfo) {
-      const username = userInfo.username.trim()
-      const password = userInfo.password
-      const code = userInfo.code
-      const uuid = userInfo.uuid
-      const socialCode = userInfo.socialCode
-      const socialState = userInfo.socialState
-      const socialType = userInfo.socialType
       return new Promise((resolve, reject) => {
-        login(username, password, code, uuid,
-          socialType, socialCode, socialState).then(res => {
-            res = res.data;
-            // 设置 token
-            setToken(res)
-            resolve()
-          }).catch(error => {
-            reject(error)
-          })
+        login(userInfo).then(user => {
+          // 设置 token
+          setToken({ accessToken: user.token });
+          resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+    // 获取用户信息
+    GetInfo({ commit, state }) {
+      return new Promise((resolve, reject) => {
+        getInfo().then(user => {
+          commit('SET_ROLES', user.roles)
+          commit('SET_PERMISSIONS', user.permissions)
+
+          commit('SET_DEPTID', user.deptId)
+          commit('SET_ID', user.userId)
+          commit('SET_NAME', user.loginName)
+          commit('SET_NICKNAME', user.username)
+          commit('SET_AVATAR', user.avatar)
+          resolve(user)
+        }).catch(error => {
+          // reject(error)
+        })
       })
     },
 
+    /*
     // 社交登录
     SocialLogin({ commit }, userInfo) {
       const code = userInfo.code
@@ -89,45 +100,7 @@ const user = {
         })
       })
     },
-    // 获取用户信息
-    GetInfo({ commit, state }) {
-      return new Promise((resolve, reject) => {
-        getInfo().then(res => {
-          // 没有 data 数据，赋予个默认值
-          if (!res) {
-            res = {
-              data: {
-                roles: [],
-                user: {
-                  id: '',
-                  avatar: '',
-                  userName: '',
-                  nickname: ''
-                }
-              }
-            }
-          }
-
-          res = res.data; // 读取 data 数据
-          const user = res.user
-          const avatar = (user.avatar === "" || user.avatar == null) ? require("@/assets/images/profile.jpg") : user.avatar;
-          if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组
-            commit('SET_ROLES', res.roles)
-            commit('SET_PERMISSIONS', res.permissions)
-          } else {
-            commit('SET_ROLES', ['ROLE_DEFAULT'])
-          }
-          commit('SET_DEPTID', user.deptId)
-          commit('SET_ID', user.id)
-          commit('SET_NAME', user.userName)
-          commit('SET_NICKNAME', user.nickname)
-          commit('SET_AVATAR', avatar)
-          resolve(res)
-        }).catch(error => {
-          reject(error)
-        })
-      })
-    },
+    */
 
     // 退出系统
     LogOut({ commit, state }) {
@@ -138,7 +111,12 @@ const user = {
           removeToken()
           resolve()
         }).catch(error => {
-          reject(error)
+          commit('SET_ROLES', [])
+          commit('SET_PERMISSIONS', [])
+          removeToken()
+          resolve()
+          // removeToken()
+          //reject(error)
         })
       })
     }

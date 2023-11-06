@@ -13,7 +13,7 @@ export function check(condition, message) {
 
 export async function initMetadata(object, apis, name, metadata) {
   if (!metadata) {
-    metadata = await getResult(apis.getMetadata());
+    metadata = await apis.getMetadata();
     metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
       obj[item.name] = item;
       return obj;
@@ -68,10 +68,48 @@ export function getCurrentUser() {
   return store.state.user;
 }
 
+//树形结构需要每行有一个id，且还只能是固定的名字
+const mappingId = (idField, result) => {
+  if (!idField || !result) return;
+  if (Array.isArray(result)) {
+    result.forEach(item => mappingId(idField, item));
+  }
+  else {
+    result.id = result[idField];
+    if (result.children) mappingId(idField, result.children);
+  }
+}
+
+import Element from 'element-ui';
+export function globalErrorHandler(err, vm, info) {
+  if (err._handled) return;
+  err._handled = true;
+  console.error('*** Error:', err, vm, info);
+  Element.Message({
+    dangerouslyUseHTMLString: true,
+    message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} ${err?.response?.data.message}`,
+    type: 'error',
+    duration: 0,
+    showClose: true,
+    center: true
+  });
+}
+
 export function request(options) {
-  return _request({
-    baseURL: process.env.VUE_APP_BASE_API,
-    ...options,
+  const resetFlag = (obj, loading) => { if (obj && loading) obj[loading] = false };
+  // common request handler
+  if (options.This && options.loading) options.This[options.loading] = true;
+  return _request({ baseURL: process.env.VUE_APP_BASE_API, ...options }).then(response => {
+    // common response handler
+    resetFlag(options.This, options.loading);
+    mappingId(options.idField, response.result);
+    return response.result;
+  }).catch(error => {
+    // common exception handler
+    resetFlag(options.This, options.loading);
+    if (!options.noPopup)
+      globalErrorHandler(error);
+    throw error;
   });
 }
 
@@ -111,25 +149,6 @@ Date.prototype.format = function (fmt) {
   return fmt;
 }
 
-//get records and reset loading flag
-export async function getResult(promise, loading, idField) {
-  const resetFlag = (obj, loading) => { if (obj && loading) obj[loading] = false };
-  //树形结构需要每行有一个id，且还只能是固定的名字
-  const mappingId = (idField, result) => {
-    if (!idField || !result) return;
-    if (Array.isArray(result)) {
-      result.forEach(item => mappingId(idField, item));
-    }
-    else {
-      result.id = result[idField];
-      if (result.children) mappingId(idField, result.children);
-    }
-  };
-  const This = this;
-  if (this && loading) this[loading] = true;
-  return promise.then((x) => { resetFlag(This, loading); var data = x.result; mappingId(idField, data); return data; }, (e) => { resetFlag(This, loading); throw e; }); //.then(resp => resp.data.result);
-}
-
 export function moneyFormatter(x, y, value) {
   return value ? value.toFixed(2) : '';
 }
@@ -163,6 +182,5 @@ export function notImplemented(vue) {
   vue.$message('NOT IMPLEMENTED !');
 }
 
-import Vue from 'vue';
-Vue.prototype.getResult = getResult;
+// import Vue from 'vue';
 // Vue.prototype.getDictLabel = getDictLabel;

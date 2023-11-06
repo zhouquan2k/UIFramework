@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="grid-toolbar">
-            <div style="display: flex;">
+            <div style="display: flex;width: 90%;">
                 <el-button v-if="buttons.add" type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
                     v-hasPermi="['system:user:create']">新增</el-button>
                 <el-button v-if="buttons.export" type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
@@ -121,7 +121,7 @@
   
 <script>
 
-import { notImplemented, getResult, initMetadata, defaultCrudActions, dateFormatter, safeGet } from "@/utils/utils";
+import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
     name: 'Crud',
@@ -132,10 +132,11 @@ export default {
         checkbox: { default: () => false },
         metadataParam: {},
         initList: { default: () => true, },
-        searchVisible: { default: () => false },
         actions: { default: () => defaultCrudActions },
         buttons: { default: () => ({ add: true, 'export': true }) },
-        searches: { default: () => { } },
+        searchVisible: { default: () => false },
+        searchParam: { default: () => { } }, //fixed search param
+        searches: { default: () => { } }, // other search inputs
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
         rowClassName: { default: () => null },
@@ -182,15 +183,16 @@ export default {
         },
         onReset() {
             this.searchForm = {};
-            this.getList();
+            this.onSearch();
         },
         async getList() {
             if (!this.apis) return;
-            this.list = await getResult(this.apis.list(), null, this.metadata.idField);
+            this.list = await this.apis.list({ idField: this.metadata.idField });
         },
         async onSearch() {
+            Object.assign(this.searchForm, this.searchParam);
             if (Object.keys(this.searchForm).length == 0) return this.getList();
-            this.list = await getResult(this.apis.search(this.searchForm), null, this.metadata.idField);
+            this.list = await this.apis.search(this.searchForm, { idField: this.metadata.idField });
         },
         showAddDialog(current) {
             this.detail = { parentId: current ? current[this.metadata.idField] : null };
@@ -208,9 +210,9 @@ export default {
                 if (!valid) return false;
                 let response;
                 if (this.detail[this.metadata.idField]) {
-                    response = await getResult(this.apis.update(this.detail[this.metadata.idField], this.detail));
+                    response = await this.apis.update(this.detail);
                 } else {
-                    response = await getResult(this.apis.create(this.detail));
+                    response = await this.apis.create(this.detail);
                 }
                 this.$message.success('保存成功');
                 await this.getList();
@@ -222,7 +224,7 @@ export default {
             this.deleteConfirmVisible = true;
         },
         async deleteRecord() {
-            const response = await getResult(this.apis.delete(this.detail[this.metadata.idField]));
+            const response = await this.apis.delete(this.detail[this.metadata.idField]);
             this.$message.success('删除成功');
             this.getList();
             this.deleteConfirmVisible = false;
@@ -264,8 +266,9 @@ export default {
 
 .search-form {
     margin-left: 10px;
-    margin-right: auto;
+    /* margin-right: auto; */
     margin-top: -2px;
+    width: 100%
 }
 
 .search-input {

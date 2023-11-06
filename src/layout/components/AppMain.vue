@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import store from '@/store'
 export default {
   name: 'AppMain',
   computed: {
@@ -18,6 +19,13 @@ export default {
     key() {
       return this.$route.path
     }
+  },
+  created() {
+    store.dispatch('GetInfo').catch(err => { });
+    store.dispatch('ProcessMenus').then(routes => {
+      // 根据roles权限生成可访问的路由表
+      this.$router.addRoutes(routes) // 动态添加可访问路由表
+    });
   }
 }
 </script>
@@ -30,6 +38,7 @@ export default {
   position: relative;
   overflow: hidden;
   padding-top: 5px;
+  margin: 10px;
 
 }
 

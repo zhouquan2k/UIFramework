@@ -9,27 +9,17 @@
     <div class="right-menu">
       <span v-if="isTest" class="right-menu-item" style="background:red;color:white;">Test</span>
       <template v-if="device !== 'mobile'">
-        <search id="header-search" class="right-menu-item" />
-
-        <!--el-tooltip content="源码地址" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
-        </el-tooltip-->
-
+        <!-- search id="header-search" class="right-menu-item" /-->
         <screenfull id="screenfull" class="right-menu-item hover-effect" />
-
-        <el-tooltip content="布局大小" effect="dark" placement="bottom">
+        <!--el-tooltip content="布局大小" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
+        </el-tooltip-->
       </template>
 
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
           <img v-if="avatar" :src="avatar" class="user-avatar">
+          <i v-else class="el-icon-user-solid"></i>
           <span v-if="nickname" class="user-nickname">{{ nickname }}</span>
           <i class="el-icon-caret-bottom" />
         </div>
@@ -107,11 +97,13 @@ export default {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
-      this.$modal.confirm('确定注销并退出系统吗？', '提示').then(() => {
+      this.$confirm('确定注销并退出系统吗？', '提示').then(() => {
         this.$store.dispatch('LogOut').then(() => {
-          location.href = getPath('/');
-        })
-      }).catch(() => { });
+          location.href = '/login';
+        }).catch(error => {
+          location.href = "/login";
+        }).catch(() => { });
+      })
     }
   }
 }
@@ -183,7 +175,6 @@ export default {
       margin-right: 30px;
 
       .avatar-wrapper {
-        display: flex;
         justify-content: center;
         align-items: center;
         position: relative;

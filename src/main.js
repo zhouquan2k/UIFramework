@@ -16,18 +16,9 @@ Vue.use(Element, {
   size: 'small' // set element-ui default size
 });
 
+import { globalErrorHandler } from './utils/utils.js';
 //global error handler
-Vue.config.errorHandler = function (err, vm, info) {
-  console.error('Vue Error:', err, vm, info);
-  Element.Message({
-    dangerouslyUseHTMLString: true,
-    message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} ${err?.response?.data.message}`,
-    type: 'error',
-    duration: 0,
-    showClose: true,
-    center: true
-  });
-}
+Vue.config.errorHandler = globalErrorHandler;
 
 // route related
 import Router from 'vue-router'
@@ -49,7 +40,7 @@ Vue.use(plugins);
 
 Vue.config.productionTip = false
 
-new Vue({
+export default new Vue({
   router,
   store,
   render: h => h(App),

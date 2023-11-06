@@ -19,45 +19,42 @@ const menus = {
   },
   actions: {
     ProcessMenus({ commit }) {
-      return new Promise(resolve => {
-        // 向后端请求路由数据
-        menuApi.list().then(res => {
-          const menus = res.result;
+      return menuApi.list().then(res => {
+        const menus = res;
 
-          const processMenu = function (menu, parent) {
-            var ret = {};
-            if (menu.menuName) {
-              var basePath = parent ? parent.fullPath : '/';
-              var isTopNode = parent.fullPath == '/';
-              ret = {
-                ...{
-                  name: menu.menuName,
-                  path: menu.children && menu.children.length > 0 ? `${isTopNode ? '/' : ''}${menu.path}` : `${menu.function}`,
-                  meta: { title: menu.menuName },
-                }
-              };
-              if (!menu.parentId) {
-                ret.component = Layout;
+        const processMenu = function (menu, parent) {
+          var ret = {};
+          if (menu.menuName) {
+            var basePath = parent ? parent.fullPath : '/';
+            var isTopNode = parent.fullPath == '/';
+            ret = {
+              ...{
+                name: menu.menuName,
+                path: menu.children && menu.children.length > 0 ? `${isTopNode ? '/' : ''}${menu.path}` : `${menu.function}`,
+                meta: { title: menu.menuName },
               }
-              else if (menu.feComponent) {
-                ret.component = loadView(menu.feComponent);
-              }
-              menu.fullPath = ret.path + "/";
+            };
+            if (!menu.parentId) {
+              ret.component = Layout;
             }
-            if (menu.children) {
-              ret.children = menu.children.map(m => processMenu(m, menu));
+            else if (menu.feComponent) {
+              ret.component = loadView(menu.feComponent);
             }
-            return ret;
+            menu.fullPath = ret.path + "/";
           }
-          const convertedMenus = processMenu({ children: menus, fullPath: '/' }, null);
-          const sidebarMenu = [constantRouteToMenus(), ...convertedMenus.children];
-          const routes = menusToRoutes(convertedMenus.children);
-          commit('SET_MENUS', sidebarMenu);
-          commit('SET_ROUTES', routes);
+          if (menu.children) {
+            ret.children = menu.children.map(m => processMenu(m, menu));
+          }
+          return ret;
+        }
+        const convertedMenus = processMenu({ children: menus, fullPath: '/' }, null);
+        const sidebarMenu = [constantRouteToMenus(), ...convertedMenus.children];
+        const routes = menusToRoutes(convertedMenus.children);
+        commit('SET_MENUS', sidebarMenu);
+        commit('SET_ROUTES', routes);
 
-          resolve(routes);
-        })
-      })
+        return routes;
+      });
     }
   }
 }
