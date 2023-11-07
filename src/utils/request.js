@@ -39,6 +39,7 @@ const ignoreMsgs = [
   "刷新令牌已过期" // 使用刷新令牌，刷新获取新的访问令牌时，结果因为过期失败，此时需要忽略。否则，会导致继续 401，无法跳转到登出界面
 ];
 
+// TODO refactor
 const errorHandler = async (code, msg, error) => {
   console.log('errorHandler: ' + code + ',' + msg);
   if (ignoreMsgs.indexOf(msg) !== -1) { // 如果是忽略的错误码，直接返回 msg 异常
@@ -78,7 +79,8 @@ const errorHandler = async (code, msg, error) => {
         })
       })
       */
-      Promise.reject(error);
+      error._handled = true;
+      return Promise.reject(error);
     }
   } else if (code === 500) {
     return Promise.reject(error);
@@ -111,7 +113,7 @@ service.interceptors.response.use(async res => {
   //return errorHandler(res.status, res.statusText, res);
 }, async error => {
   console.log('err: ' + error)
-  return await errorHandler(error.response?.status, error.response?.data ? error.response.data.message : error.message, error);
+  return errorHandler(error.response?.status, error.response?.data ? error.response.data.message : error.message, error);
 })
 
 export function getBaseHeader() {
