@@ -34,11 +34,12 @@ export default {
 .app-main {
   /* 50= navbar  50  */
   min-height: calc(100vh - 50px);
-  width: 100%;
+  /* width: 100%; */
   position: relative;
   overflow: hidden;
   padding-top: 5px;
-  margin: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
 
 }
 

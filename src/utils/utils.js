@@ -11,38 +11,22 @@ export function check(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-export async function initMetadata(object, apis, name, metadata) {
-  if (!metadata) {
-    metadata = await apis.getMetadata();
-    metadata.entitiesMap = metadata.entities.reduce((obj, item) => {
-      obj[item.name] = item;
-      return obj;
-    }, {});
-    object.allMetadata = metadata; // pass to downstream
-  }
+export async function initMetadata(object, apis, name) {
   if (name) {
-    const ret_metadata = metadata.entitiesMap[name];
+    const ret_metadata = object.$metadata.entitiesMap[name];
     check(ret_metadata != null, `can't find ${name} in ${apis.baseUrl}`)
     ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
     ret_metadata.fields.forEach(field => {
       if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
     });
     object.metadata = ret_metadata;
-  }
-  object.dictionaries = metadata.dictionaries;
-
-  if (object.dictionariesMap) {
-    for (const [key, dict] of Object.entries(metadata.dictionaries)) {
-      var dictMap = {}
-      for (var item of dict) {
-        dictMap[item.value] = { label: item.label, tag: item.tag };
-      }
-      object.dictionariesMap[key] = dictMap;
-    }
     const componentName = object.$options.name
-    console.log(`${componentName}.${name} DictionariesMap: `, object.dictionariesMap);
     console.log(`${componentName}.${name} Entity: `, object.metadata);
     console.log(`${componentName}.${name} Rules: `, object.rules);
+  }
+  object.dictionaries = object.$metadata.dictionaries;
+  if (object.dictionariesMap) {
+    object.dictionariesMap = object.$metadata.dictionariesMap;
   }
 }
 
