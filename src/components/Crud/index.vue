@@ -130,7 +130,6 @@ export default {
         desc: {},
         apis: {},
         checkbox: { default: () => false },
-        metadataParam: {},
         initList: { default: () => true, },
         actions: { default: () => defaultCrudActions },
         buttons: { default: () => ({ add: true, 'export': true }) },
@@ -246,7 +245,7 @@ export default {
         }
     },
     async created() {
-        await initMetadata(this, this.apis, this.name, this.metadataParam);
+        await initMetadata(this, this.apis, this.name);
         Object.assign(this.searchForm, this.searches);
         if (this.initList) this.getList();
     }
