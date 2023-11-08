@@ -41,7 +41,7 @@ const ignoreMsgs = [
 
 // TODO refactor
 const errorHandler = async (code, msg, error) => {
-  console.log('errorHandler: ' + code + ',' + msg);
+  console.log('errorHandler: ' + code + ', ' + error + ', ' + msg);
   if (ignoreMsgs.indexOf(msg) !== -1) { // 如果是忽略的错误码，直接返回 msg 异常
     return Promise.reject(msg)
   } else if (code === 401) {
@@ -112,7 +112,6 @@ service.interceptors.response.use(async res => {
   return res.data;
   //return errorHandler(res.status, res.statusText, res);
 }, async error => {
-  console.log('err: ' + error)
   return errorHandler(error.response?.status, error.response?.data ? error.response.data.message : error.message, error);
 })
 

@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <router-view />
+    <router-view v-if="metadataReady" />
     <!-- HelloWorld msg="Welcome to Your Vue.js App" /-->
   </div>
 </template>
@@ -12,6 +12,11 @@ import Vue from 'vue';
 export default {
   name: 'App',
   components: {},
+  data() {
+    return {
+      metadataReady: false
+    }
+  },
   async created() {
     const response = await getAllMetadata();
     console.log(response);
@@ -31,6 +36,7 @@ export default {
     }
 
     Vue.prototype.$metadata = allMetadata;
+    this.metadataReady = true;
   }
 }
 </script>
