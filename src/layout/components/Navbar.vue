@@ -3,6 +3,9 @@
     <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container"
       @toggleClick="toggleSideBar" />
 
+    <div class="back"><i class="el-icon-back" @click="onBack" /><span style="margin-left: 4px;" @click="onBack">返回</span>
+    </div>
+
     <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!topNav" />
     <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav" />
 
@@ -96,6 +99,9 @@ export default {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
+    onBack() {
+      this.$router.back();
+    },
     async logout() {
       this.$confirm('确定注销并退出系统吗？', '提示').then(() => {
         this.$store.dispatch('LogOut').then(() => {
@@ -114,8 +120,25 @@ export default {
   height: 45px;
   overflow: hidden;
   position: relative;
-  background: #fff;
+  background: #fafafa;
   /* box-shadow: 0 1px 4px rgba(0, 21, 41, .08); */
+
+  .back {
+    float: left;
+    padding: 12px;
+    padding-top: 15px;
+    font-size: 14px;
+    margin-right: 15px;
+    background: #f5f5f5;
+    color: #909399;
+    height: 100%;
+    cursor: pointer;
+    transition: background .3s;
+
+    &:hover {
+      background: rgba(0, 0, 0, .025)
+    }
+  }
 
   .hamburger-container {
     line-height: 46px;
@@ -124,6 +147,7 @@ export default {
     cursor: pointer;
     transition: background .3s;
     -webkit-tap-highlight-color: transparent;
+    background: #fafafa;
 
     &:hover {
       background: rgba(0, 0, 0, .025)

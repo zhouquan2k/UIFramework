@@ -21,7 +21,9 @@ export default {
     }
   },
   created() {
+    //获取当前用户信息
     store.dispatch('GetInfo').catch(err => { });
+    //获取可访问菜单
     store.dispatch('ProcessMenus').then(routes => {
       // 根据roles权限生成可访问的路由表
       this.$router.addRoutes(routes) // 动态添加可访问路由表
@@ -37,7 +39,7 @@ export default {
   /* width: 100%; */
   position: relative;
   overflow: hidden;
-  padding-top: 5px;
+  padding-top: 8px;
   margin-left: 10px;
   margin-right: 10px;
 
