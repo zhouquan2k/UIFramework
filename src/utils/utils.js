@@ -170,5 +170,11 @@ export function notImplemented(vue) {
   vue.$message('NOT IMPLEMENTED !');
 }
 
-// import Vue from 'vue';
-// Vue.prototype.getDictLabel = getDictLabel;
+import Vue from 'vue';
+Vue.prototype.$success = function (msg) {
+  this.$notify({
+    title: '成功',
+    message: msg,
+    type: 'success'
+  });
+};
