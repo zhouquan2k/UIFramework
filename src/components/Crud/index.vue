@@ -18,7 +18,7 @@
                     </slot>
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
                     <el-form-item v-for="field in metadata.searchFields"
-                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type)">
+                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParam[field.name]">
                         <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)"
                             class="search-input" :placeholder="field.label" />
                         <el-input v-model="searchForm[field.name]" v-if="['Integer'].includes(field.type)"
@@ -46,7 +46,8 @@
             :row-class-name="rowClassName">
             <el-table-column v-if="checkbox" type="selection" width="55" />
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
-                v-if="!field.hidden && field.listable" :key="field.name" sortable>
+                v-if="!field.hidden && field.listable && (!columns || columns.includes(field.name))" :key="field.name"
+                sortable>
                 <template slot-scope="scope">
                     <el-tag v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
                         :type="dictionariesMap[field.typeName][scope.row[field.name]].tag">{{
@@ -129,6 +130,7 @@ export default {
         name: {},
         desc: {},
         apis: {},
+        columns: { default: () => null },
         checkbox: { default: () => false },
         initList: { default: () => true, },
         actions: { default: () => defaultCrudActions },
@@ -189,6 +191,7 @@ export default {
             this.list = await this.apis.list({ idField: this.metadata.idField });
         },
         async onSearch() {
+            console.log('searching...', this.searchForm, this.searchParam);
             Object.assign(this.searchForm, this.searchParam);
             if (Object.keys(this.searchForm).length == 0) return this.getList();
             this.list = await this.apis.search(this.searchForm, { idField: this.metadata.idField });
