@@ -141,8 +141,8 @@ export function moneyFormatter(x, y, value) {
   return value ? value.toFixed(2) : '';
 }
 
-export function dateFormatter(x, y, value) {
-  return value?.substring(0, 10);
+export function dateFormatter(x, y, value, meta) {
+  return meta.type == 'Date' ? value?.substring(0, 10) : value;
 }
 
 //TODO is really formatter?

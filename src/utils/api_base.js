@@ -44,9 +44,9 @@ export default class CrudApi {
             data: object
         });
     }
-    async update(object, options) {
+    async update(id, object, options) {
         return await request({
-            url: `${this.baseUrl}`,
+            url: `${this.baseUrl}/${id}`,
             method: 'put',
             data: object
         });

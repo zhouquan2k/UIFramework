@@ -49,7 +49,8 @@
                 v-if="!field.hidden && field.listable && (!columns || columns.includes(field.name))" :key="field.name"
                 sortable>
                 <template slot-scope="scope">
-                    <el-tag v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
+                    <el-tag
+                        v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name] !== null && scope.row[field.name] !== undefined"
                         :type="dictionariesMap[field.typeName][scope.row[field.name]].tag">{{
                             dictionariesMap[field.typeName][scope.row[field.name]].label
                         }}</el-tag>
@@ -58,7 +59,7 @@
                     <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
                         item[field.refData])?.join(" ") }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
-                        scope.row[field.name])
+                        scope.row[field.name], field)
                     }}</span>
                     <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
@@ -212,7 +213,7 @@ export default {
                 if (!valid) return false;
                 let response;
                 if (this.detail[this.metadata.idField]) {
-                    response = await this.apis.update(this.detail);
+                    response = await this.apis.update(this.detail[this.metadata.idField], this.detail);
                 } else {
                     response = await this.apis.create(this.detail);
                 }
