@@ -28,7 +28,7 @@
                         <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
                             value="" :placeholder="field.label" class="search-input">
                             <el-option v-for="item in dictionaries[field.typeName]" :label="item.label" :value="item.value"
-                                :key="`search-${item.value}`" />
+                                :key="`${field.name}-${item.value}`" />
                         </el-select>
                     </el-form-item>
                     <el-form-item>
@@ -99,7 +99,7 @@
                                 v-if="['String', 'Text'].includes(field.type)"></el-input>
                             <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
                                 <el-option v-for="item in dictionaries[field.typeName]" :label="item.label"
-                                    :value="item.value" :key="item.value" />
+                                    :value="item.value" :key="`${field.name}-${item.value}`" />
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -136,7 +136,7 @@ export default {
         actions: { default: () => defaultCrudActions },
         buttons: { default: () => ({ add: true, 'export': true }) },
         searchVisible: { default: () => false },
-        searchParam: { default: () => { } }, //fixed search param
+        searchParam: { default: () => ({}) }, //fixed search param
         searches: { default: () => { } }, // other search inputs
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
