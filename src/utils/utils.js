@@ -3,8 +3,6 @@ import store from '@/store'
 import { getAccessToken } from '@/utils/auth'
 
 // 也可以使用lodash _.get(project,'a.b')， 已放入vue
-export const rootPath = '/test';
-
 
 export function safeGet(o, path) {
   return path.split('.').reduce((o = {}, b) => o[b], o);
