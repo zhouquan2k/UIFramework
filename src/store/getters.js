@@ -1,4 +1,5 @@
 const getters = {
+  title: state => state.project?.project?.projectName,
   sidebar: state => state.app.sidebar,
   size: state => state.app.size,
   device: state => state.app.device,

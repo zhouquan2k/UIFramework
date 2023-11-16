@@ -1,5 +1,6 @@
 /* Layout */
 import Layout from '@/layout'
+import Default from '@/default'
 
 // import { title } from '@/settings'
 import { getRoutes as getUserRoutes } from '@user/router'
@@ -62,7 +63,7 @@ export function initRouter() {
 
     //...getAppRoutes(),
     [...getUserRoutes(), ...getGcpRoutes()].forEach(r => {
-        r.meta = { title: r.name };
+        if (!r.meta) r.meta = { title: r.name };
         testRoute.children.push(r);
     });
 

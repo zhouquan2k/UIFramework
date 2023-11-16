@@ -1,14 +1,18 @@
 <template>
   <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container"
-      @toggleClick="toggleSideBar" />
+    <div>
+      <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container"
+        @toggleClick="toggleSideBar" />
 
-    <div class="back"><i class="el-icon-back" @click="onBack" /><span style="margin-left: 4px;" @click="onBack">返回</span>
+      <div class="back"><i class="el-icon-back" @click="onBack" /><span style="margin-left: 4px;"
+          @click="onBack">返回</span>
+      </div>
+
+      <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!topNav" />
+
+      <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav" />
     </div>
-
-    <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!topNav" />
-    <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav" />
-
+    <div v-if="title" class="title">{{ title ? `【 ${title} 】` : '' }}</div>
     <div class="right-menu">
       <span v-if="isTest" class="right-menu-item" style="background:red;color:white;">Test</span>
       <template v-if="device !== 'mobile'">
@@ -76,7 +80,8 @@ export default {
       'sidebar',
       'avatar',
       'nickname',
-      'device'
+      'device',
+      'title'
     ]),
     setting: {
       get() {
@@ -121,6 +126,9 @@ export default {
   overflow: hidden;
   position: relative;
   background: #fafafa;
+  display: flex;
+  justify-content: space-between;
+  /* 分散对齐，确保左右元素靠边，中间元素居中 */
   /* box-shadow: 0 1px 4px rgba(0, 21, 41, .08); */
 
   .back {
@@ -156,6 +164,14 @@ export default {
 
   .breadcrumb-container {
     float: left;
+  }
+
+  .title {
+    text-align: center;
+    vertical-align: middle;
+    padding: 10px;
+    background-color: #f0f9eb;
+    color: #67c23a;
   }
 
   .topmenu-container {

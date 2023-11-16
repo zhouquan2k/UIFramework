@@ -6,6 +6,8 @@ import settings from './modules/settings'
 import user from './modules/user'
 import tagsView from './modules/tagsView'
 import menu from './modules/menu';
+import project from '@gcp/store/project';
+
 /*
 import permission from './modules/permission'
 import dict from './modules/dict'
@@ -19,7 +21,8 @@ const store = new Vuex.Store({
     settings,
     user,
     tagsView,
-    menu
+    menu,
+    project,
     /*
     permission,
     dict
