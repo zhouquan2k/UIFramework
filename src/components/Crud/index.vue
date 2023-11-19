@@ -56,17 +56,19 @@
                         }}</el-tag>
                     <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
                         {{ safeGet(scope.row, field.refData) }}</span>
-                    <span v-else-if="field.type == 'ToMany'">{{ scope.row[field.name]?.map(item =>
-                        item[field.refData])?.join(" ") }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
                         scope.row[field.name], field)
                     }}</span>
+                    <div v-else-if="field.type == 'ToMany'">
+                        <el-tag v-for="item in scope.row[field.name]">{{ safeGet(item, field.refData) }}
+                        </el-tag>
+                    </div>
                     <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="280">
                 <template slot-scope="scope">
-                    <el-button v-for="action in actions.slice(0, actionCntToHide)"
+                    <el-button v-for="   action    in    actions.slice(0, actionCntToHide)   "
                         v-if="!action.available || action.available(scope.row)" type="text" :style="action.style"
                         @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
@@ -76,8 +78,9 @@
                             更多<i class="el-icon-d-arrow-right el-icon--left" />
                         </span>
                         <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item v-for="action in actions.slice(actionCntToHide)" :command="action.method"
-                                size="mini" type="text" :icon="action.icon" v-hasPermi="['system:user:delete']">{{
+                            <el-dropdown-item v-for="   action    in    actions.slice(actionCntToHide)   "
+                                :command="action.method" size="mini" type="text" :icon="action.icon"
+                                v-hasPermi="['system:user:delete']">{{
                                     action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
@@ -90,7 +93,7 @@
             <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
                 class="input-form">
                 <el-row>
-                    <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
+                    <el-col v-for="   field    in    metadata.fields   " :span="24 / (field.type == 'Text' ? 1 : formCols)"
                         v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal'].includes(field.type)">
                         <el-form-item :label="field.label" :prop="field.name">
                             <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
@@ -99,7 +102,7 @@
                             <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
                                 v-if="['String', 'Text'].includes(field.type)"></el-input>
                             <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
-                                <el-option v-for="item in dictionaries[field.typeName]" :label="item.label"
+                                <el-option v-for="   item    in    dictionaries[field.typeName]   " :label="item.label"
                                     :value="item.value" :key="`${field.name}-${item.value}`" />
                             </el-select>
                         </el-form-item>
@@ -178,23 +181,22 @@ export default {
     },
     methods: {
         callMethod(methodName, ...params) {
-            if (this.$parent[methodName])
-                this.$parent[methodName](...params);
-            else
-                this[methodName](...params);
+            this.$emit('action', { name: methodName, params: params });
         },
         onReset() {
             this.searchForm = {};
             this.onSearch();
         },
+        // for compatible, rediect to onSearch
         async getList() {
             if (!this.apis) return;
-            this.list = await this.apis.list({ idField: this.metadata.idField });
+            //this.list = await this.apis.list({ idField: this.metadata.idField });
+            this.onSearch();
         },
         async onSearch() {
             console.log('searching...', this.searchForm, this.searchParam);
             Object.assign(this.searchForm, this.searchParam);
-            if (Object.keys(this.searchForm).length == 0) return this.getList();
+            // if (Object.keys(this.searchForm).length == 0) return this.getList();
             this.list = await this.apis.search(this.searchForm, { idField: this.metadata.idField });
         },
         showAddDialog(current) {

@@ -14,7 +14,7 @@
     </div>
     <div v-if="title" class="title">{{ title ? `【 ${title} 】` : '' }}</div>
     <div class="right-menu">
-      <span v-if="isTest" class="right-menu-item" style="background:red;color:white;">Test</span>
+      <span v-if="isTest" class="right-menu-item" style="background:#E6A23C;color:white;">Test</span>
       <template v-if="device !== 'mobile'">
         <!-- search id="header-search" class="right-menu-item" /-->
         <screenfull id="screenfull" class="right-menu-item hover-effect" />
