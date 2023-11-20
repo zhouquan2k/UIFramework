@@ -60,7 +60,7 @@
                         scope.row[field.name], field)
                     }}</span>
                     <div v-else-if="field.type == 'ToMany'">
-                        <el-tag v-for="item in scope.row[field.name]">{{ safeGet(item, field.refData) }}
+                        <el-tag v-for="item in scope.row[field.name]">{{ getManyItemLabel(item, field) }}
                         </el-tag>
                     </div>
                     <span v-else>{{ scope.row[field.name] }}</span>
@@ -93,8 +93,8 @@
             <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
                 class="input-form">
                 <el-row>
-                    <el-col v-for="   field    in    metadata.fields   " :span="24 / (field.type == 'Text' ? 1 : formCols)"
-                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal'].includes(field.type)">
+                    <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
+                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany'].includes(field.type)">
                         <el-form-item :label="field.label" :prop="field.name">
                             <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
                             <el-input v-model="detail[field.name]" v-if="['Integer', 'Decimal'].includes(field.type)"
@@ -102,8 +102,15 @@
                             <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
                                 v-if="['String', 'Text'].includes(field.type)"></el-input>
                             <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
-                                <el-option v-for="   item    in    dictionaries[field.typeName]   " :label="item.label"
+                                <el-option v-for="item in dictionaries[field.typeName]" :label="item.label"
                                     :value="item.value" :key="`${field.name}-${item.value}`" />
+                            </el-select>
+                            <el-select v-if="['ToMany'].includes(field.type) && toManySelectData[field.name]"
+                                v-model="detail[field.name]" multiple :placeholder="`请选择${field.label}`"
+                                :value-key="field.refData.split(',')[0]">
+                                <el-option v-for="item in toManySelectData[field.name]" :key="item.key" :label="item.label"
+                                    :value="item.value">
+                                </el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -126,7 +133,7 @@
   
 <script>
 
-import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet } from "@/utils/utils";
+import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 export default {
     name: 'Crud',
@@ -145,6 +152,7 @@ export default {
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
         rowClassName: { default: () => null },
+        toManySelectData: { default: () => ({}) },
     },
     watch: {
         apis: {
@@ -175,7 +183,7 @@ export default {
             deleteConfirmVisible: false,
             exportLoading: false,
 
-            dateFormatter, safeGet,
+            dateFormatter, safeGet, getManyItemLabel,
             tableUpdateKey: 2617,
         };
     },

@@ -8,6 +8,11 @@ export function safeGet(o, path) {
   return path.split('.').reduce((o = {}, b) => o[b], o);
 }
 
+export function getManyItemLabel(item, fieldMeta) {
+  const fields = fieldMeta.refData.split(',');
+  return safeGet(item, fields[1]);
+}
+
 export function check(condition, message) {
   if (!condition) throw new Error(message);
 }
