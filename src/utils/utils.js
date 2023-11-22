@@ -54,6 +54,15 @@ export const defaultCrudActions = [
   }
 ];
 
+export const defaultActionProc = function (action, crud) {
+  if (this[action.name]) {
+    this[action.name](...action.params);
+  }
+  else
+    crud[action.name](...action.params);
+};
+
+
 export function getCurrentUser() {
   return store.state.user;
 }

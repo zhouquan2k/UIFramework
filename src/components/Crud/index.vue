@@ -66,7 +66,7 @@
                     <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
-            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="280">
+            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
                 <template slot-scope="scope">
                     <el-button v-for="   action    in    actions.slice(0, actionCntToHide)   "
                         v-if="!action.available || action.available(scope.row)" type="text" :style="action.style"
