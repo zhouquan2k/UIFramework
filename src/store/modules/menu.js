@@ -19,6 +19,7 @@ const menus = {
   },
   actions: {
     ProcessMenus({ commit }) {
+      // load menu from api
       return menuApi.list().then(res => {
         const menus = res;
 

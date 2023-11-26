@@ -17,6 +17,8 @@ export function check(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+export const globalDateFormat = 'yyyy-MM-dd';
+
 export async function initMetadata(object, apis, name) {
   if (name) {
     const ret_metadata = object.$metadata.entitiesMap[name];

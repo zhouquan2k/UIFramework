@@ -51,8 +51,8 @@
                 <template slot-scope="scope">
                     <el-tag
                         v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name] !== null && scope.row[field.name] !== undefined"
-                        :type="dictionariesMap[field.typeName][scope.row[field.name]].tag">{{
-                            dictionariesMap[field.typeName][scope.row[field.name]].label
+                        :type="dictionariesMap[field.typeName]?.[scope.row[field.name]].tag">{{
+                            dictionariesMap[field.typeName]?.[scope.row[field.name]].label
                         }}</el-tag>
                     <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
                         {{ safeGet(scope.row, field.refData) }}</span>
@@ -198,8 +198,11 @@ export default {
         // for compatible, rediect to onSearch
         async getList() {
             if (!this.apis) return;
-            //this.list = await this.apis.list({ idField: this.metadata.idField });
-            this.onSearch();
+            if (this.searchVisible)
+                this.onSearch();
+            else
+                this.list = await this.apis.list({ idField: this.metadata.idField });
+
         },
         async onSearch() {
             console.log('searching...', this.searchForm, this.searchParam);
