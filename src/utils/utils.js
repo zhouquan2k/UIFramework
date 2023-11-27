@@ -18,6 +18,7 @@ export function check(condition, message) {
 }
 
 export const globalDateFormat = 'yyyy-MM-dd';
+export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 export async function initMetadata(object, apis, name) {
   if (name) {
