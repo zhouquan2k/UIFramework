@@ -30,7 +30,7 @@ export default {
     for (const [key, dict] of Object.entries(response.dictionaries)) {
       var dictMap = {}
       for (var item of dict) {
-        dictMap[item.value] = { label: item.label, tag: item.tag };
+        dictMap[item.value] = { label: item.label, tag: item.tag, value: item.value };
       }
       allMetadata.dictionariesMap[key] = dictMap;
     }

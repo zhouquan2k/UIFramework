@@ -101,10 +101,13 @@
                                 style="width:100px;"></el-input>
                             <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
                                 v-if="['String', 'Text'].includes(field.type)"></el-input>
-                            <el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)">
-                                <el-option v-for="item in dictionaries[field.typeName]" :label="item.label"
+                            <!--el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
+                                filterable :filter-method="filterMethod">
+                                <el-option v-for="item in metadata.selectData[field.name]" :label="item.label"
                                     :value="item.value" :key="`${field.name}-${item.value}`" />
-                            </el-select>
+                            </el-select-->
+                            <DictionarySelect v-model="detail[field.name]"
+                                v-if="['Enum', 'Dictionary'].includes(field.type)" :dictionary="field.typeName" />
                             <el-select v-if="['ToMany'].includes(field.type) && toManySelectData[field.name]"
                                 v-model="detail[field.name]" multiple :placeholder="`请选择${field.label}`"
                                 :value-key="field.refData.split(',')[0]">
@@ -132,9 +135,9 @@
 </template>
   
 <script>
-
 import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
+import DictionarySelect from '@/components/dictionary_select'
 export default {
     name: 'Crud',
     props: {
@@ -167,7 +170,7 @@ export default {
             deep: true,
         }
     },
-    components: { RightToolbar },
+    components: { RightToolbar, DictionarySelect },
     data() {
         return {
             metadata: { fields: [] },
