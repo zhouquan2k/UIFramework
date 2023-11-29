@@ -57,7 +57,8 @@ export const defaultCrudActions = [
   }
 ];
 
-export const defaultActionProc = function (action, crud) {
+export const defaultActionProc = function (action) {
+  let crud = this.$refs.crud;
   if (this[action.name]) {
     this[action.name](...action.params);
   }
