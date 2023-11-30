@@ -94,21 +94,18 @@
                 class="input-form">
                 <el-row>
                     <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
-                        v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany'].includes(field.type)">
-                        <el-form-item :label="field.label" :prop="field.name">
-                            <span v-if="['ID', 'IDStr'].includes(field.type)">{{ detail[field.name] }}</span>
-                            <el-input v-model="detail[field.name]" v-if="['Integer', 'Decimal'].includes(field.type)"
+                        v-if="!field.hidden && ['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany'].includes(field.type)">
+                        <el-form-item :label="field.label" :prop="field.name"
+                            v-if="!isUpdate || field.updatable || field.listable">
+                            <span v-if="isUpdate && !field.updatable">{{ detail[field.name]
+                            }}</span>
+                            <el-input v-model="detail[field.name]" v-else-if="['Integer', 'Decimal'].includes(field.type)"
                                 style="width:100px;"></el-input>
-                            <el-input :type="field.type == 'String' ? 'text' : 'textarea'" v-model="detail[field.name]"
-                                v-if="['String', 'Text'].includes(field.type)"></el-input>
-                            <!--el-select v-model="detail[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
-                                filterable :filter-method="filterMethod">
-                                <el-option v-for="item in metadata.selectData[field.name]" :label="item.label"
-                                    :value="item.value" :key="`${field.name}-${item.value}`" />
-                            </el-select-->
+                            <el-input :type="field.type == 'Text' ? 'textarea' : 'text'" v-model="detail[field.name]"
+                                v-else-if="['String', 'Text', 'IDStr'].includes(field.type)"></el-input>
                             <DictionarySelect v-model="detail[field.name]"
-                                v-if="['Enum', 'Dictionary'].includes(field.type)" :dictionary="field.typeName" />
-                            <el-select v-if="['ToMany'].includes(field.type) && toManySelectData[field.name]"
+                                v-else-if="['Enum', 'Dictionary'].includes(field.type)" :dictionary="field.typeName" />
+                            <el-select v-else-if="['ToMany'].includes(field.type) && toManySelectData[field.name]"
                                 v-model="detail[field.name]" multiple :placeholder="`请选择${field.label}`"
                                 :value-key="field.refData.split(',')[0]">
                                 <el-option v-for="item in toManySelectData[field.name]" :key="item.key" :label="item.label"
@@ -180,6 +177,7 @@ export default {
 
             list: [],
             detail: {},
+            isUpdate: false,
 
             dialogVisible: false,
             dialogTitle: '',
@@ -208,6 +206,9 @@ export default {
 
         },
         async onSearch() {
+            for (const key in this.searchForm) {
+                if (this.searchForm[key] === "") delete this.searchForm[key];
+            }
             console.log('searching...', this.searchForm, this.searchParam);
             Object.assign(this.searchForm, this.searchParam);
             // if (Object.keys(this.searchForm).length == 0) return this.getList();
@@ -217,18 +218,20 @@ export default {
             this.detail = { parentId: current ? current[this.metadata.idField] : null };
             this.dialogVisible = true;
             this.dialogTitle = '新建';
+            this.isUpdate = false;
 
         },
         showEditDialog(detail) {
             this.detail = { ...detail };
             this.dialogVisible = true;
             this.dialogTitle = '编辑';
+            this.isUpdate = true;
         },
         async save() {
             this.$refs['detail-form'].validate(async (valid) => {
                 if (!valid) return false;
                 let response;
-                if (this.detail[this.metadata.idField]) {
+                if (this.isUpdate) {
                     response = await this.apis.update(this.detail[this.metadata.idField], this.detail);
                 } else {
                     response = await this.apis.create(this.detail);
