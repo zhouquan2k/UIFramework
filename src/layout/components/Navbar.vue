@@ -170,8 +170,10 @@ export default {
     text-align: center;
     vertical-align: middle;
     padding: 10px;
-    background-color: #f0f9eb;
-    color: #67c23a;
+    background-color: white;
+    /* #f0f9eb; */
+    color: black;
+    /* #67c23a; */
   }
 
   .topmenu-container {
