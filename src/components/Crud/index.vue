@@ -2,12 +2,12 @@
     <div>
         <div class="grid-toolbar">
             <div style="display: flex;width: 90%;">
-                <el-button v-if="buttons.add" type="primary" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
-                    v-hasPermi="['system:user:create']">新增</el-button>
-                <el-button v-if="buttons.export" type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
+                <el-button v-if="buttons.add" type="success" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
+                    v-hasPermi="['system:user:create']">新建</el-button>
+                <!--el-button v-if="buttons.export" type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
                     v-hasPermi="['system:user:import']">导入</el-button>
                 <el-button v-if="buttons.export" type="warning" icon="el-icon-download" size="mini" @click="handleExport"
-                    :loading="exportLoading" v-hasPermi="['system:user:export']">导出</el-button>
+                    :loading="exportLoading" v-hasPermi="['system:user:export']">导出</el-button-->
                 <slot name="buttons">
                 </slot>
                 <i v-if="metadata.searchFields?.length > 0" class="el-icon-arrow-right"
