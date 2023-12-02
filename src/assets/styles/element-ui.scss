@@ -52,6 +52,10 @@
   left: 0;
   position: relative;
   margin: 0 auto;
+
+  .el-dialog__body {
+    padding: 10px 20px;
+  }
 }
 
 // refine element ui upload
@@ -83,10 +87,6 @@
   box-sizing: content-box;
 }
 
-.el-menu--collapse
-> div
-> .el-submenu
-> .el-submenu__title
-.el-submenu__icon-arrow {
+.el-menu--collapse>div>.el-submenu>.el-submenu__title .el-submenu__icon-arrow {
   display: none;
 }

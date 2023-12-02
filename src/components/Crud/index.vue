@@ -17,7 +17,7 @@
                     <slot name="searches">
                     </slot>
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
-                    <el-form-item v-for="field in metadata.searchFields"
+                    <el-form-item v-for="field in seachableFields"
                         v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParam[field.name]">
                         <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)"
                             class="search-input" :placeholder="field.label" />
@@ -51,8 +51,8 @@
                 <template slot-scope="scope">
                     <el-tag
                         v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name] !== null && scope.row[field.name] !== undefined"
-                        :type="dictionariesMap[field.typeName]?.[scope.row[field.name]].tag">{{
-                            dictionariesMap[field.typeName]?.[scope.row[field.name]].label
+                        :type="dictionariesMap[field.typeName]?.[scope.row[field.name]]?.tag">{{
+                            dictionariesMap[field.typeName]?.[scope.row[field.name]]?.label
                         }}</el-tag>
                     <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
                         {{ safeGet(scope.row, field.refData) }}</span>
@@ -89,33 +89,9 @@
             </el-table-column>
         </el-table>
         <el-pagination :hide-on-single-page="false" :total="list?.length" layout="prev, pager, next" />
-        <el-dialog :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible">
-            <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
-                class="input-form">
-                <el-row>
-                    <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
-                        v-if="!field.hidden && ['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany'].includes(field.type)">
-                        <el-form-item :label="field.label" :prop="field.name"
-                            v-if="!isUpdate || field.updatable || field.listable">
-                            <span v-if="isUpdate && !field.updatable">{{ detail[field.name]
-                            }}</span>
-                            <el-input v-model="detail[field.name]" v-else-if="['Integer', 'Decimal'].includes(field.type)"
-                                style="width:100px;"></el-input>
-                            <el-input :type="field.type == 'Text' ? 'textarea' : 'text'" v-model="detail[field.name]"
-                                v-else-if="['String', 'Text', 'IDStr'].includes(field.type)"></el-input>
-                            <DictionarySelect v-model="detail[field.name]"
-                                v-else-if="['Enum', 'Dictionary'].includes(field.type)" :dictionary="field.typeName" />
-                            <el-select v-else-if="['ToMany'].includes(field.type) && toManySelectData[field.name]"
-                                v-model="detail[field.name]" multiple :placeholder="`请选择${field.label}`"
-                                :value-key="field.refData.split(',')[0]">
-                                <el-option v-for="item in toManySelectData[field.name]" :key="item.key" :label="item.label"
-                                    :value="item.value">
-                                </el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
+        <el-dialog v-if="dialogVisible" :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible">
+            <DetailForm ref="detail-form" :name="name" :detail="detail" :formCols="formCols" :isUpdate="isUpdate"
+                :toManySelectData="toManySelectData" />
             <span slot="footer" class="dialog-footer">
                 <el-button @click="dialogVisible = false">取消</el-button>
                 <el-button type="primary" @click="save">确定</el-button>
@@ -135,6 +111,7 @@
 import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 import DictionarySelect from '@/components/dictionary_select'
+import DetailForm from './detail_form';
 export default {
     name: 'Crud',
     props: {
@@ -145,10 +122,11 @@ export default {
         checkbox: { default: () => false },
         initList: { default: () => true, },
         actions: { default: () => defaultCrudActions },
-        buttons: { default: () => ({ add: true, 'export': true }) },
+        buttons: { default: () => ({ add: true, 'export': false }) },
         searchVisible: { default: () => false },
         searchParam: { default: () => ({}) }, //fixed search param
         searches: { default: () => { } }, // other search inputs
+        extSearchMeta: { default: () => [] },
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
         rowClassName: { default: () => null },
@@ -167,13 +145,17 @@ export default {
             deep: true,
         }
     },
-    components: { RightToolbar, DictionarySelect },
+    computed: {
+        seachableFields() {
+            return [...this.metadata.searchFields, ...this.extSearchMeta];
+        },
+    },
+    components: { RightToolbar, DictionarySelect, DetailForm },
     data() {
         return {
             metadata: { fields: [] },
             dictionariesMap: {},
             searchForm: {},
-            rules: {},
 
             list: [],
             detail: {},

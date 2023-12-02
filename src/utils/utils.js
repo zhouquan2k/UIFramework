@@ -20,10 +20,11 @@ export function check(condition, message) {
 export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
+// TODO apis not used
 export async function initMetadata(object, apis, name) {
   if (name) {
     const ret_metadata = object.$metadata.entitiesMap[name];
-    check(ret_metadata != null, `can't find ${name} in ${apis.baseUrl}`)
+    check(ret_metadata != null, `can't find ${name}`)
     ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
     ret_metadata.fields.forEach(field => {
       if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
