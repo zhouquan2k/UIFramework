@@ -32,7 +32,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="onSearch">搜索</el-button>
+                        <el-button type="primary" plain @click="onSearch">搜索</el-button>
                         <el-button @click="onReset">重置</el-button>
                     </el-form-item>
                 </el-form>

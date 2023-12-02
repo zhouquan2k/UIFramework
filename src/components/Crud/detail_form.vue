@@ -2,10 +2,13 @@
     <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules" class="input-form">
         <el-row>
             <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
-                v-if="!field.hidden && ['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany', 'Date'].includes(field.type)">
+                v-if="!field.hidden && (['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany', 'Date'].includes(field.type) || field.uiType)">
                 <el-form-item :label="field.label" :prop="field.name" v-if="!isUpdate || field.updatable || field.listable">
                     <span v-if="isUpdate && !field.updatable">{{ detail[field.name]
                     }}</span>
+                    <component v-else-if="field.uiType" :is="getCustomComponent()[field.uiType]"
+                        v-bind="{ field: field, row: detail, params: getCustomComponent()[field.uiType + '_params'] }"
+                        v-model="detail[field.name]" />
                     <el-input v-model="detail[field.name]" v-else-if="['Integer', 'Decimal'].includes(field.type)"
                         style="width:100px;"></el-input>
                     <el-input :type="field.type == 'Text' ? 'textarea' : 'text'" v-model="detail[field.name]"
@@ -39,6 +42,7 @@ export default {
         formCols: { type: Number, default: 1 },
         toManySelectData: { default: () => ({}) },
     },
+    inject: ['getCustomComponent'],
     components: { DictionarySelect },
     data() {
         return {
