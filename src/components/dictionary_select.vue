@@ -1,6 +1,7 @@
 <template>
     <el-select :value="value" @change="onSelect" filterable :filter-method="filterMethod">
-        <el-option v-for="item in dictionaryData" :label="item.label" :value="item.value" :key="item.value" />
+        <el-option v-for="item in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label" :value="item.value"
+            :key="item.value" />
     </el-select>
 </template>
 <script>

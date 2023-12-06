@@ -42,7 +42,9 @@ export default {
         formCols: { type: Number, default: 1 },
         toManySelectData: { default: () => ({}) },
     },
-    inject: ['getCustomComponent'],
+    inject: {
+        getCustomComponent: { default: {} }
+    },
     components: { DictionarySelect },
     data() {
         return {
