@@ -190,6 +190,10 @@ export function notImplemented(vue) {
   vue.$message('NOT IMPLEMENTED !');
 }
 
+export function generateUniqueKey() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
 import Vue from 'vue';
 Vue.prototype.$success = function (msg) {
   this.$notify({
