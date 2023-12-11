@@ -2,7 +2,7 @@
     <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules" class="input-form">
         <el-row>
             <el-col v-for="field in metadata.fields" :span="24 / (field.type == 'Text' ? 1 : formCols)"
-                v-if="!field.hidden && (['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany', 'Date'].includes(field.type) || field.uiType)">
+                v-if="!field.hidden && (['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany', 'ToOne', 'Date'].includes(field.type) || field.uiType)">
                 <el-form-item :label="field.label" :prop="field.name" v-if="!isUpdate || field.updatable || field.listable">
                     <span v-if="isUpdate && !field.updatable">{{ detail[field.name]
                     }}</span>
@@ -25,6 +25,8 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
+                    <DetailForm v-else-if="['ToOne'].includes(field.type)" :name="field.typeName"
+                        :detail="detail[field.name]" :isUpdate="isUpdate" />
                 </el-form-item>
             </el-col>
         </el-row>
