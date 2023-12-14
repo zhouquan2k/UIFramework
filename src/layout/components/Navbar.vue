@@ -12,7 +12,7 @@
 
       <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav" />
     </div>
-    <div v-if="title" class="title">{{ title ? `【 ${title} 】` : '' }}</div>
+    <div v-if="title" class="title">【<div class="text">{{ title }} </div>】</div>
     <div class="right-menu">
       <span v-if="isTest" class="right-menu-item" style="background:#E6A23C;color:white;">Test</span>
       <template v-if="device !== 'mobile'">
@@ -173,7 +173,18 @@ export default {
     background-color: white;
     /* #f0f9eb; */
     color: black;
-    /* #67c23a; */
+    display: flex;
+
+
+
+    .text {
+      max-width: 400px;
+      text-overflow: ellipsis;
+      /* 使用省略号表示被截断的文本 */
+      white-space: nowrap;
+      /* 确保文本在一行内 */
+      overflow: hidden;
+    }
   }
 
   .topmenu-container {
