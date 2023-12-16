@@ -91,7 +91,7 @@ export function globalErrorHandler(err, vm, info) {
   console.error('*** Error:', err, vm, info);
   Element.Message({
     dangerouslyUseHTMLString: true,
-    message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} ${err?.response?.data.message}`,
+    message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} <br/><br/>${err?.response?.data.message}`,
     type: 'error',
     duration: 0,
     showClose: true,
