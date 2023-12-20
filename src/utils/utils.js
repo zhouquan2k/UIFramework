@@ -63,7 +63,7 @@ export const defaultActionProc = function (action) {
   if (this[action.name]) {
     this[action.name](...action.params);
   }
-  else
+  else if (crud[action.name])
     crud[action.name](...action.params);
 };
 
