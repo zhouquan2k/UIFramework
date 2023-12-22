@@ -31,8 +31,9 @@ const menus = {
             ret = {
               ...{
                 name: menu.menuName,
-                path: menu.children && menu.children.length > 0 ? `${isTopNode ? '/' : ''}${menu.path}` : `${menu.function}`,
+                path: menu.children && menu.children.length > 0 ? `${isTopNode ? '/' : ''}${menu.path}` : `${menu.path ? menu.path : menu.function}`,
                 meta: { title: menu.menuName },
+                order: menu.order,
               }
             };
             if (!menu.parentId) {

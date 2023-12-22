@@ -62,6 +62,7 @@ export function initRouter() {
     ];
 
     //...getAppRoutes(),
+    // test routes
     [...getUserRoutes(), ...getGcpRoutes()].forEach(r => {
         if (!r.meta) r.meta = { title: r.name };
         testRoute.children.push(r);

@@ -5,13 +5,6 @@ export default class CrudApi {
         this.baseUrl = baseUrl;
     }
 
-    async getMetadata() {
-        return await request({
-            url: `${this.baseUrl}/metadata`,
-            method: 'get',
-        });
-    }
-
     async get(id, options) {
         return await request({
             url: `${this.baseUrl}/${id}`,
