@@ -13,7 +13,7 @@ const getters = {
   username: state => state.user.nickname,
   introduction: state => state.user.introduction,
   roles: state => state.user.roles,
-  permissions: state => ["*:*:*"], // TODO state.user.permissions,
+  permissions: state => state.user.permissions,
   // 工具栏
   routes: state => state.menu.routes, // state.routes,
   menus: state => state.menu.menus,

@@ -8,6 +8,12 @@ export function safeGet(o, path) {
   return path.split('.').reduce((o = {}, b) => o[b], o);
 }
 
+export function getForTemplate(tempalte, params) {
+  return tempalte.replace(/\$\{(\w+)\}/g, (match, key) => {
+    return params[key] ? params[key] : '';
+  });
+}
+
 export function getManyItemLabel(item, fieldMeta) {
   const fields = fieldMeta.refData.split(',');
   return safeGet(item, fields[1]);
@@ -124,7 +130,7 @@ export function getAuthHeader() {
 export function hasPermission(permission) {
   var allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions.indexOf(permission) >= 0;
+  return allPermissions.indexOf(permission) >= 0 || allPermissions.indexOf('*') >= 0;
 }
 
 export function trimProcess(object) {
@@ -140,7 +146,7 @@ Date.prototype.format = function (fmt) {
   var o = {
     "M+": this.getMonth() + 1,                 //月份
     "d+": this.getDate(),                    //日
-    "h+": this.getHours(),                   //小时
+    "H+": this.getHours(),                   //小时
     "m+": this.getMinutes(),                 //分
     "s+": this.getSeconds(),                 //秒
     "q+": Math.floor((this.getMonth() + 3) / 3), //季度
