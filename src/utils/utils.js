@@ -127,10 +127,11 @@ export function getAuthHeader() {
   return { 'Authorization': 'Bearer ' + getAccessToken() };
 }
 
-export function hasPermission(permission) {
-  var allPermissions = store.getters && store.getters.permissions;
+const AdminPermission = "security.***";
+export function hasPermission(permission, allPermissions) {
+  if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions.indexOf(permission) >= 0 || allPermissions.indexOf('*') >= 0;
+  return allPermissions.indexOf(permission) >= 0 || allPermissions.indexOf(AdminPermission) >= 0;
 }
 
 export function trimProcess(object) {

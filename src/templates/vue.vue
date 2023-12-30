@@ -5,7 +5,7 @@
 </template>
 <script>
 import Crud from '@/components/Crud';
-import projectApi from '@gcp/project_api';
+import { projectApi } from '@gcp/project_api';
 import { defaultActionProc } from '@/utils/utils';
 import { rootPath } from '@gcp/router';
 export default {

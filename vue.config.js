@@ -8,7 +8,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: false, // turn off lint
   configureWebpack: {
-    // devtool: 'source-map', //zhouquan
+    devtool: 'source-map', //zhouquan
     // name: name,
     resolve: {
       alias: {
