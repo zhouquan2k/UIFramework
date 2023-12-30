@@ -12,7 +12,9 @@
 
       <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav" />
     </div>
-    <div v-if="title" class="title">【<div class="text">{{ title }} </div>】</div>
+    <div v-if="title" class="title">
+      <div class="text">{{ title }} </div>
+    </div>
     <div class="right-menu">
       <span v-if="isTest" class="right-menu-item" style="background:#E6A23C;color:white;">Test</span>
       <template v-if="device !== 'mobile'">
@@ -31,7 +33,7 @@
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown">
-          <router-link to="/user/profile">
+          <router-link to="/profile">
             <el-dropdown-item>个人中心</el-dropdown-item>
           </router-link>
           <el-dropdown-item @click.native="setting = true">
@@ -54,9 +56,6 @@ import Hamburger from '@/layout/components/Hamburger'
 import Screenfull from '@/layout/components/Screenfull'
 import SizeSelect from '@/layout/components/SizeSelect'
 import Search from '@/layout/components/HeaderSearch'
-// import RuoYiGit from '@/components/RuoYi/Git'
-// import RuoYiDoc from '@/components/RuoYi/Doc'
-import { getPath } from "@/utils";
 import { isTest } from '@/settings'
 
 export default {
@@ -67,8 +66,6 @@ export default {
     Screenfull,
     SizeSelect,
     Search,
-    // RuoYiGit,
-    // RuoYiDoc
   },
   data() {
     return {

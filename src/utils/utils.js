@@ -128,10 +128,12 @@ export function getAuthHeader() {
 }
 
 const AdminPermission = "security.***";
-export function hasPermission(permission, allPermissions) {
+export function hasPermission(permission, location, allPermissions) {
+  let permString = permission;
+  if (location) permString += `@${location}`;
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions.indexOf(permission) >= 0 || allPermissions.indexOf(AdminPermission) >= 0;
+  return allPermissions.indexOf(permString) >= 0 || allPermissions.indexOf(AdminPermission) >= 0;
 }
 
 export function trimProcess(object) {

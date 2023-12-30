@@ -3,7 +3,7 @@
         <div class="grid-toolbar">
             <div style="display: flex;width: 90%;">
                 <el-button v-if="buttons.add" type="success" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
-                    :disabled="!hasPermission('system:user:create')">新建</el-button>
+                    :disabled="permissionName ? !hasPermission(`${permissionName}.write`, permissionAt) : false">新建</el-button>
                 <!--el-button v-if="buttons.export" type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
                     v-hasPermi="['system:user:import']">导入</el-button>
                 <el-button v-if="buttons.export" type="warning" icon="el-icon-download" size="mini" @click="handleExport"
@@ -131,6 +131,9 @@ export default {
         actionCntToHide: { default: () => 2 },
         rowClassName: { default: () => null },
         toManySelectData: { default: () => ({}) },
+        autoSearch: { default: () => false },
+        permissionName: { default: () => null },
+        permissionAt: { default: () => null },
     },
     watch: {
         apis: {
@@ -141,6 +144,7 @@ export default {
         searches: {
             handler(newVal) {
                 Object.assign(this.searchForm, newVal);
+                if (this.autoSearch) this.onSearch();
             },
             deep: true,
         }
@@ -192,7 +196,7 @@ export default {
             for (const key in this.searchForm) {
                 if (this.searchForm[key] === "") delete this.searchForm[key];
             }
-            console.log('searching...', this.searchForm, this.searchParam);
+            console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParam));
             Object.assign(this.searchForm, this.searchParam);
             // if (Object.keys(this.searchForm).length == 0) return this.getList();
             this.list = await this.apis.search(this.searchForm, { idField: this.metadata.idField });
@@ -217,7 +221,7 @@ export default {
                 if (this.isUpdate) {
                     response = await this.apis.update(this.detail[this.metadata.idField], this.detail);
                 } else {
-                    response = await this.apis.create(this.detail);
+                    response = await this.apis.create({ ...this.detail, ...this.searchForm });
                 }
                 this.$message.success('保存成功');
                 await this.getList();

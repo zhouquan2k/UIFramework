@@ -24,6 +24,10 @@ export function initRouter() {
         {
             path: '/',
             component: Layout,
+            children: [{
+                path: 'profile',
+                component: (resolve) => require(['@user/Profile'], resolve),
+            }]
         },
         {
             path: '/login',

@@ -1,5 +1,5 @@
 const getters = {
-  title: state => state.project?.project?.projectName,
+  title: state => state.project.project ? `【${state.project?.project?.projectCode}】${state.project?.project?.medicineName}` : '',
   sidebar: state => state.app.sidebar,
   size: state => state.app.size,
   device: state => state.app.device,
