@@ -3,7 +3,7 @@
         <div class="grid-toolbar">
             <div style="display: flex;width: 90%;">
                 <el-button v-if="buttons.add" type="success" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
-                    v-hasPermi="['system:user:create']">新建</el-button>
+                    :disabled="!hasPermission('system:user:create')">新建</el-button>
                 <!--el-button v-if="buttons.export" type="info" icon="el-icon-upload2" size="mini" @click="handleImport"
                     v-hasPermi="['system:user:import']">导入</el-button>
                 <el-button v-if="buttons.export" type="warning" icon="el-icon-download" size="mini" @click="handleExport"
@@ -80,7 +80,7 @@
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item v-for="   action    in    actions.slice(actionCntToHide)   "
                                 :command="action.method" size="mini" type="text" :icon="action.icon"
-                                v-hasPermi="['system:user:delete']">{{
+                                v-if="hasPermission['system:user:delete']">{{
                                     action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
@@ -108,7 +108,7 @@
 </template>
   
 <script>
-import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel } from "@/utils/utils";
+import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel, hasPermission } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 import DictionarySelect from '@/components/dictionary_select'
 import DetailForm from './detail_form';
@@ -171,6 +171,7 @@ export default {
         };
     },
     methods: {
+        hasPermission,
         callMethod(methodName, ...params) {
             this.$emit('action', { name: methodName, params: params });
         },
