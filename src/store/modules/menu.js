@@ -34,6 +34,7 @@ const menus = {
                 path: menu.children && menu.children.length > 0 ? `${isTopNode ? '/' : ''}${menu.path}` : `${menu.path ? menu.path : menu.function}`,
                 meta: { title: menu.menuName },
                 order: menu.order,
+                isFolder: !menu.function
               }
             };
             if (!menu.parentId) {
