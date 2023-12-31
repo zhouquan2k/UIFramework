@@ -1,5 +1,6 @@
 import menuApi from '@user/menu_api'
 import Layout from '@/layout/index'
+import { hasPermission } from '@/utils/utils';
 // import ParentView from '@/components/ParentView';
 
 const menus = {

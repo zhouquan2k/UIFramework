@@ -12,6 +12,7 @@ export async function initRouter() {
     var testRoute = {
         name: 'test0',
         path: '/test',
+        function: 'security.test*',
         component: Layout,
         meta: { title: '测试', icon: 'form' },
         children: [],

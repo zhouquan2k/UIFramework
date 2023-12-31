@@ -11,7 +11,8 @@
       </app-link>
     </template>
 
-    <el-submenu v-else ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
+    <el-submenu v-else-if="!item.function || hasPermission(item.function)" ref="subMenu" :index="resolvePath(item.path)"
+      popper-append-to-body>
       <template slot="title">
         <item v-if="item.meta && item.order != -1" :icon="item.meta && item.meta.icon" :title="item.meta.title" />
       </template>
@@ -27,6 +28,7 @@ import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
 import FixiOSBug from './FixiOSBug'
+import { hasPermission } from '@/utils/utils';
 
 export default {
   name: 'SidebarItem',
@@ -52,6 +54,7 @@ export default {
     return {}
   },
   methods: {
+    hasPermission,
     hasOneShowingChild(children = [], parent) {
       if (!children) {
         children = [];
