@@ -45,7 +45,7 @@ module.exports = {
 
   loginNeeded: true,
 
-  isTest: process.env.VUE_APP_IS_TEST,
+  isTest: process.env.VUE_APP_IS_TEST == 'true',
 
   filePreviewUrl: process.env.VUE_APP_FILE_PREVIEW_URL,
 

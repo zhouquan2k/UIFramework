@@ -127,7 +127,7 @@ export default {
         buttons: { default: () => ({ add: true, 'export': false }) },
         searchVisible: { default: () => false },
         searchParam: { default: () => ({}) }, //fixed search param
-        searches: { default: () => { } }, // other search inputs
+        searches: { default: () => { } }, // other search inputs, can be set to empty when click 'reset'
         extSearchMeta: { default: () => [] },
         formCols: { type: Number, default: 1 },
         actionCntToHide: { default: () => 2 },
@@ -146,6 +146,12 @@ export default {
         searches: {
             handler(newVal) {
                 Object.assign(this.searchForm, newVal);
+                if (this.autoSearch) this.onSearch();
+            },
+            deep: true,
+        },
+        searchParam: {
+            handler(newVal) {
                 if (this.autoSearch) this.onSearch();
             },
             deep: true,

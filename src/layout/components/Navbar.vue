@@ -17,6 +17,7 @@
     </div>
     <div class="right-menu">
       <span v-if="isTest" class="right-menu-item" style="background:#E6A23C;color:white;">Test</span>
+      <span v-if="!isTest" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
       <template v-if="device !== 'mobile'">
         <!-- search id="header-search" class="right-menu-item" /-->
         <screenfull id="screenfull" class="right-menu-item hover-effect" />
