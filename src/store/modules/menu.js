@@ -1,4 +1,3 @@
-import { initRouter } from '@/router'
 import menuApi from '@user/menu_api'
 import Layout from '@/layout/index'
 // import ParentView from '@/components/ParentView';
@@ -68,7 +67,7 @@ function menusToRoutes(menus) {
 }
 
 function constantRouteToMenus() {
-  return initRouter()[0];
+  return window.testRoutes;
 }
 
 export const loadView = (view) => { // 路由懒加载

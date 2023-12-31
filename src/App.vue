@@ -9,6 +9,7 @@
 import '@/assets/styles/index.scss' // global css
 import { getAllMetadata } from '@user/security_api';
 import Vue from 'vue';
+import store from '@/store';
 export default {
   name: 'App',
   components: {},
@@ -18,6 +19,9 @@ export default {
     }
   },
   async created() {
+    //获取当前用户信息
+    store.dispatch('GetInfo').catch(err => { });
+
     const response = await getAllMetadata();
     console.log(response);
     const allMetadata = { dictionariesMap: {} };

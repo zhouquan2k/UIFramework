@@ -17,7 +17,7 @@
                     <slot name="searches">
                     </slot>
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
-                    <el-form-item v-for="field in seachableFields"
+                    <el-form-item v-for="field in seachableFields" :key="field.name"
                         v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParam[field.name]">
                         <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)"
                             class="search-input" :placeholder="field.label" />
@@ -60,7 +60,9 @@
                         scope.row[field.name], field)
                     }}</span>
                     <div v-else-if="field.type == 'ToMany'">
-                        <el-tag v-for="item in scope.row[field.name]">{{ getManyItemLabel(item, field) }}
+                        <el-tag v-for="(item, index) in scope.row[field.name]" :key="`tag-${field.name}-${index}`">{{
+                            getManyItemLabel(item,
+                                field) }}
                         </el-tag>
                     </div>
                     <span v-else>{{ scope.row[field.name] }}</span>
@@ -69,8 +71,8 @@
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
                 <template slot-scope="scope">
                     <el-button v-for="   action    in    actions.slice(0, actionCntToHide)   "
-                        v-if="!action.available || action.available(scope.row)" type="text" :style="action.style"
-                        @click="callMethod(action.method, scope.row)">{{ action.desc
+                        :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
+                        :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
                     <el-dropdown v-if="actions.length > actionCntToHide"
                         @command="(command) => callMethod(command, scope.row)">
@@ -79,7 +81,7 @@
                         </span>
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item v-for="   action    in    actions.slice(actionCntToHide)   "
-                                :command="action.method" size="mini" type="text" :icon="action.icon"
+                                :command="action.method" size="mini" type="text" :icon="action.icon" :key="action.name"
                                 v-if="hasPermission['system:user:delete']">{{
                                     action.desc
                                 }}</el-dropdown-item>

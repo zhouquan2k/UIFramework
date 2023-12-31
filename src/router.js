@@ -1,14 +1,14 @@
 /* Layout */
 import Layout from '@/layout'
-import Default from '@/default'
+import store from './store'
 
 // import { title } from '@/settings'
 import { getRoutes as getUserRoutes } from '@user/router'
 // import { getRoutes as getAppRoutes } from '@app/router'
 import { getRoutes as getGcpRoutes } from '@gcp/router'
 
-
-export function initRouter() {
+//async
+export async function initRouter() {
     var testRoute = {
         name: 'test0',
         path: '/test',
@@ -17,7 +17,6 @@ export function initRouter() {
         children: [],
     };
 
-    // var user_vue = 'user/user.vue'
     // 公共路由
     const constantRoutes = [
         testRoute,
@@ -40,7 +39,7 @@ export function initRouter() {
         {
             path: '/hello',
             component: Layout,
-            redirect: 'home',
+            redirect: '/hello/home',
             children: [{
                 path: 'home',
                 component: (resolve) => require(['@/components/HelloWorld'], resolve),
@@ -71,8 +70,20 @@ export function initRouter() {
         if (!r.meta) r.meta = { title: r.name };
         testRoute.children.push(r);
     });
+    window.testRoutes = testRoute;
 
-    return constantRoutes;
+    //获取可访问菜单
+
+    let dynamicRoutes = [];
+    try {
+        dynamicRoutes = await store.dispatch('ProcessMenus');
+    }
+    catch (e) {
+
+    }
+    // this.$router.addRoutes(routes) // 动态添加可访问路由表
+
+    return [...constantRoutes, ...dynamicRoutes];
 }
 
 

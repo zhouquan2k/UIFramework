@@ -134,8 +134,9 @@ function handleAuthorized() {
     ).then(() => {
       isRelogin.show = false;
       store.dispatch('LogOut').then(() => {
-        console.log(vue, vue.$route.fullPath);
-        location.href = '/login?from=' + vue.$route.fullPath;
+        console.log(window.location.href);
+        window.vue.$router.replace(`/login?from=${encodeURIComponent(window.location.href)}`);
+        //location.href = '/login?from=' + vue.$route.fullPath;
       })
     }).catch(() => {
       isRelogin.show = false;
