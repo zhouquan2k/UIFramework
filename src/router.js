@@ -83,7 +83,7 @@ export async function initRouter() {
     }
     // this.$router.addRoutes(routes) // 动态添加可访问路由表
 
-    return [...constantRoutes, ...dynamicRoutes];
+    return [...constantRoutes, ...(dynamicRoutes ? dynamicRoutes : [])];
 }
 
 

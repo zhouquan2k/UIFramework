@@ -21,6 +21,7 @@ export default {
     }
   },
   created() {
+    store.dispatch('GetInfo').catch(err => { });
   }
 }
 </script>

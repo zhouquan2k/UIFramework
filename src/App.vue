@@ -20,7 +20,6 @@ export default {
   },
   async created() {
     //获取当前用户信息
-    store.dispatch('GetInfo').catch(err => { });
 
     const response = await getAllMetadata();
     console.log(response);

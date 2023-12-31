@@ -45,9 +45,10 @@ const errorHandler = async (code, msg, error) => {
   if (ignoreMsgs.indexOf(msg) !== -1) { // 如果是忽略的错误码，直接返回 msg 异常
     return Promise.reject(msg)
   } else if (code === 401) {
+
     // return Promise.reject(error); //TODO
     // 如果未认证，并且未进行刷新令牌，说明可能是访问令牌过期了
-    if (!isRefreshToken) {
+    if ((!error || !(error.config.noAutoLogin)) && !isRefreshToken) {
       isRefreshToken = true;
       // 1. 如果获取不到刷新令牌，则只能执行登出操作
       if (!getRefreshToken()) {
@@ -122,7 +123,6 @@ export function getBaseHeader() {
 }
 
 import { MessageBox } from 'element-ui'
-import vue from '@/main';
 function handleAuthorized() {
   if (!isRelogin.show) {
     isRelogin.show = true;

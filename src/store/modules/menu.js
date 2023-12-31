@@ -19,7 +19,7 @@ const menus = {
   actions: {
     ProcessMenus({ commit }) {
       // load menu from api
-      return menuApi.list().then(res => {
+      return menuApi.list({ noAutoLogin: true }).then(res => {
         const menus = res;
 
         const processMenu = function (menu, parent) {
@@ -56,7 +56,7 @@ const menus = {
         commit('SET_ROUTES', routes);
 
         return routes;
-      });
+      }).catch(err => { });
     }
   }
 }
