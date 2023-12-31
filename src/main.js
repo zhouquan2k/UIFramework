@@ -29,8 +29,8 @@ import Router from 'vue-router'
 Vue.use(Router);
 import { initRouter } from './router';
 
-async function init() {
-  const allRoutes = await initRouter();
+function init() {
+  const allRoutes = initRouter();
   const router = new Router({
     base: process.env.VUE_APP_APP_NAME ? process.env.VUE_APP_APP_NAME : "/",
     mode: 'history', // 去掉url中的#

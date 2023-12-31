@@ -1,7 +1,4 @@
-import menuApi from '@user/menu_api'
-import Layout from '@/layout/index'
 import { hasPermission } from '@/utils/utils';
-// import ParentView from '@/components/ParentView';
 
 const menus = {
   state: {
@@ -13,17 +10,13 @@ const menus = {
       state.menus = menus;
     },
     SET_ROUTES: (state, routes) => {
-      // state.addRoutes = routes
       state.routes = routes;
     }
   },
   actions: {
-    ProcessMenus({ commit }) {
-      // load menu from api
-      return menuApi.list({ noAutoLogin: true }).then(res => {
-        const menus = res;
-
-        const processMenu = function (menu, parent) {
+    ProcessMenus({ commit }, appRoute) {
+      /*  
+      const processMenu = function (menu, parent) {
           var ret = {};
           if (menu.menuName) {
             var basePath = parent ? parent.fullPath : '/';
@@ -51,16 +44,14 @@ const menus = {
           return ret;
         }
         const convertedMenus = processMenu({ children: menus, fullPath: '/' }, null);
-        const sidebarMenu = [constantRouteToMenus(), ...convertedMenus.children];
-        const routes = menusToRoutes(convertedMenus.children);
-        commit('SET_MENUS', sidebarMenu);
-        commit('SET_ROUTES', routes);
-
-        return routes;
-      }).catch(err => { });
+        */
+      const sidebarMenu = appRoute.children;
+      commit('SET_MENUS', sidebarMenu);
+      commit('SET_ROUTES', appRoute);
+      return appRoute;
     }
   }
-}
+};
 
 // menu is route now
 function menusToRoutes(menus) {

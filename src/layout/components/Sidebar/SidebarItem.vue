@@ -3,7 +3,8 @@
     <template
       v-if="hasOneShowingChild(item.children, item) && (!onlyOneChild.children || onlyOneChild.noShowingChildren) && !item.alwaysShow">
 
-      <app-link v-if="onlyOneChild.meta && item.order != -1 && !item.isFolder" :to="`${resolvePath(onlyOneChild.path)}`">
+      <app-link v-if="onlyOneChild.meta && item.order != -1 && !item.isFolder && hasPermission(item)"
+        :to="`${resolvePath(onlyOneChild.path)}`">
 
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{ 'submenu-title-noDropdown': !isNest }">
           <item :icon="onlyOneChild.meta.icon || (item.meta && item.meta.icon)" :title="onlyOneChild.meta.title" />
@@ -11,8 +12,7 @@
       </app-link>
     </template>
 
-    <el-submenu v-else-if="!item.function || hasPermission(item.function)" ref="subMenu" :index="resolvePath(item.path)"
-      popper-append-to-body>
+    <el-submenu v-else-if="hasPermission(item)" ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
       <template slot="title">
         <item v-if="item.meta && item.order != -1" :icon="item.meta && item.meta.icon" :title="item.meta.title" />
       </template>
@@ -54,7 +54,9 @@ export default {
     return {}
   },
   methods: {
-    hasPermission,
+    hasPermission(item) {
+      return !item.permission || hasPermission(item.permission);
+    },
     hasOneShowingChild(children = [], parent) {
       if (!children) {
         children = [];

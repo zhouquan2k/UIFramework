@@ -8,27 +8,31 @@ import { getRoutes as getUserRoutes } from '@user/router'
 import { getRoutes as getGcpRoutes } from '@gcp/router'
 
 //async
-export async function initRouter() {
-    var testRoute = {
-        name: 'test0',
-        path: '/test',
-        function: 'security.test*',
+export function initRouter() {
+    const appRoute = {
+        name: 'app',
+        path: '/',
+        redirect: '/gcp/home',
         component: Layout,
-        meta: { title: '测试', icon: 'form' },
-        children: [],
+        children: [
+            {
+                path: '/profile',
+                component: (resolve) => require(['@user/Profile'], resolve),
+            },
+            {
+                name: '_版本说明',
+                path: '/release-notes',
+                meta: { title: '版本说明' },
+                beforeEnter(to, from, next) {
+                    window.location.href = "https://www.progartisan.com/gcp-release-notes";
+                }
+            },
+        ],
     };
 
     // 公共路由
     const constantRoutes = [
-        testRoute,
-        {
-            path: '/',
-            component: Layout,
-            children: [{
-                path: 'profile',
-                component: (resolve) => require(['@user/Profile'], resolve),
-            }]
-        },
+        appRoute,
         {
             path: '/login',
             component: (resolve) => require(['@user/login'], resolve),
@@ -65,26 +69,16 @@ export async function initRouter() {
         */
     ];
 
-    //...getAppRoutes(),
-    // test routes
-    [...getUserRoutes(), ...getGcpRoutes()].forEach(r => {
-        if (!r.meta) r.meta = { title: r.name };
-        testRoute.children.push(r);
+    // get routes from all modules
+    [...getGcpRoutes(), ...getUserRoutes(),].forEach(r => {
+        // if (!r.meta) r.meta = { title: r.name };
+        appRoute.children.push(r);
     });
-    window.testRoutes = testRoute;
 
-    //获取可访问菜单
+    // convert to menu
+    store.dispatch('ProcessMenus', appRoute);
 
-    let dynamicRoutes = [];
-    try {
-        dynamicRoutes = await store.dispatch('ProcessMenus');
-    }
-    catch (e) {
-
-    }
-    // this.$router.addRoutes(routes) // 动态添加可访问路由表
-
-    return [...constantRoutes, ...(dynamicRoutes ? dynamicRoutes : [])];
+    return constantRoutes;
 }
 
 
