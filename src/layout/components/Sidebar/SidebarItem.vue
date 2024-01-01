@@ -55,6 +55,19 @@ export default {
   },
   methods: {
     hasPermission(item) {
+      if (item.isFolder) {
+        return item.children.some(i => i.meta && !i.hidden && this.hasPermission(i));
+        /*
+        let found = false;
+        for (let i of item.children) {
+          if (i.meta && !i.hidden && this.hasPermission(i)) {
+            console.log('has permission:' + i.name);
+            return true;
+          }
+        }
+        return false;
+        */
+      }
       return !item.permission || hasPermission(item.permission);
     },
     hasOneShowingChild(children = [], parent) {
