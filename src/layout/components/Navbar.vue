@@ -16,7 +16,7 @@
       <div class="text">{{ title }} </div>
     </div>
     <div class="right-menu">
-      <span v-if="!env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
+      <span v-if="env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
       <span v-else class="right-menu-item" style="background:#E6A23C;color:white;">{{ env }}</span>
 
       <template v-if="device !== 'mobile'">
