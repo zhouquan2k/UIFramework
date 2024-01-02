@@ -114,7 +114,10 @@ export default {
           location.href = "/login";
         }).catch(() => { });
       })
-    }
+    },
+  },
+  created() {
+    console.log("env..." + this.env);
   }
 }
 </script>
