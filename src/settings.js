@@ -45,11 +45,11 @@ module.exports = {
 
   loginNeeded: true,
 
-  isTest: process.env.VUE_APP_IS_TEST == 'true',
+  env: process.env.VUE_APP_ENV,
 
   filePreviewUrl: process.env.VUE_APP_FILE_PREVIEW_URL,
 
-  title: 'Prog Wizard',
+  title: 'GCP',
 
   logo: '/progartisan.jpeg'
 }
