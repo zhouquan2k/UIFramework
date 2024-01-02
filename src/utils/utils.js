@@ -95,14 +95,33 @@ export function globalErrorHandler(err, vm, info) {
   if (err._handled) return;
   err._handled = true;
   console.error('*** Error:', err, vm, info);
-  Element.Message({
-    dangerouslyUseHTMLString: true,
-    message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} <br/><br/>${err?.response?.data.message}`,
-    type: 'error',
-    duration: 0,
-    showClose: true,
-    center: true
-  });
+  const errCode = err?.response?.data.errCode;
+  let simpleMessage = null
+  switch (errCode) {
+    case 'Forbidden.BadCredentialsException':
+      simpleMessage = '错误的用户名或密码';
+      break;
+  }
+  if (simpleMessage) {
+    Element.Message({
+      // dangerouslyUseHTMLString: true,
+      message: `${simpleMessage} (${err?.response?.data.message})`,
+      type: 'error',
+      duration: 5000,
+      showClose: true,
+      center: false
+    });
+  }
+  else {
+    Element.Message({
+      dangerouslyUseHTMLString: true,
+      message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} <br/><br/>${err?.response?.data.message}`,
+      type: 'error',
+      duration: 0,
+      showClose: true,
+      center: true
+    });
+  }
 }
 
 export function request(options) {
