@@ -16,8 +16,9 @@
       <div class="text">{{ title }} </div>
     </div>
     <div class="right-menu">
-      <span v-if="isTest" class="right-menu-item" style="background:#E6A23C;color:white;">Test</span>
-      <span v-if="!isTest" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
+      <span v-if="!env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
+      <span v-else class="right-menu-item" style="background:#E6A23C;color:white;">{{ env }}</span>
+
       <template v-if="device !== 'mobile'">
         <!-- search id="header-search" class="right-menu-item" /-->
         <screenfull id="screenfull" class="right-menu-item hover-effect" />
@@ -57,7 +58,7 @@ import Hamburger from '@/layout/components/Hamburger'
 import Screenfull from '@/layout/components/Screenfull'
 import SizeSelect from '@/layout/components/SizeSelect'
 import Search from '@/layout/components/HeaderSearch'
-import { isTest } from '@/settings'
+import { env } from '@/settings'
 
 export default {
   components: {
@@ -70,7 +71,7 @@ export default {
   },
   data() {
     return {
-      isTest,
+      env
     }
   },
   computed: {

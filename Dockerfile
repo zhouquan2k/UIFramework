@@ -8,6 +8,6 @@ COPY http.conf /etc/nginx/http.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 # Overriding the default NGINX container behavior
-#COPY ./gen_environment_variables.sh /gen_environment_variables.sh
-#RUN chmod +x /gen_environment_variables.sh
-#CMD ["/gen_environment_variables.sh"]
+COPY ./gen_environment_variables.sh /gen_environment_variables.sh
+RUN chmod +x /gen_environment_variables.sh
+CMD ["/gen_environment_variables.sh"]
