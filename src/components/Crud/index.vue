@@ -211,6 +211,7 @@ export default {
         },
         showAddDialog(current) {
             this.detail = { parentId: current ? current[this.metadata.idField] : null };
+            this.metadata.fields.filter(field => field.defaultValue).forEach(field => this.detail[field.name] = field.defaultValue);
             this.dialogVisible = true;
             this.dialogTitle = '新建';
             this.isUpdate = false;
