@@ -101,6 +101,9 @@ export function globalErrorHandler(err, vm, info) {
     case 'Forbidden.BadCredentialsException':
       simpleMessage = '错误的用户名或密码';
       break;
+    case 'Forbidden.PermissinDenied':
+      simpleMessage = '无权访问';
+      break;
   }
   if (simpleMessage) {
     Element.Message({
