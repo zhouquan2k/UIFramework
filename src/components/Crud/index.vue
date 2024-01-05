@@ -68,21 +68,21 @@
                     <span v-else>{{ scope.row[field.name] }}</span>
                 </template>
             </el-table-column>
+            <slot name="columns">
+            </slot>
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
                 <template slot-scope="scope">
                     <el-button v-for="   action    in    actions.slice(0, actionCntToHide)   "
                         :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
                         :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
-                    <el-dropdown v-if="actions.length > actionCntToHide"
-                        @command="(command) => callMethod(command, scope.row)">
+                    <el-dropdown v-if="actions.length > actionCntToHide">
                         <span class="el-dropdown-link">
                             更多<i class="el-icon-d-arrow-right el-icon--left" />
                         </span>
                         <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item v-for="   action    in    actions.slice(actionCntToHide)   "
-                                :command="action.method" size="mini" type="text" :icon="action.icon" :key="action.name"
-                                v-if="hasPermission['system:user:delete']">{{
+                            <el-dropdown-item v-for="action in actions.slice(actionCntToHide)" :command="action.method"
+                                size="mini" type="text" :icon="action.icon" :key="action.name">{{
                                     action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>

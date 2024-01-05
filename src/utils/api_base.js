@@ -22,10 +22,11 @@ export default class CrudApi {
         });
     }
 
-    async list(options) {
+    async list(params, options) {
         return await request({
             url: `${this.baseUrl}`,
             method: 'get',
+            params: params,
             ...options
         });
     }
