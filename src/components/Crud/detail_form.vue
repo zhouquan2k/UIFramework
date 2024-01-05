@@ -30,6 +30,7 @@
                         :detail="detail[field.name]" :isUpdate="isUpdate" />
                 </el-form-item>
             </el-col>
+            <slot name="fields" />
         </el-row>
     </el-form>
 </template>
@@ -52,6 +53,7 @@ export default {
     data() {
         return {
             rules: {},
+            metadata: null,
         };
     },
     methods: {
