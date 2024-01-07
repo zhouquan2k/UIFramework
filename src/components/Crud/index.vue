@@ -20,11 +20,11 @@
                     <el-form-item v-for="field in seachableFields" :key="field.name"
                         v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParam[field.name]">
                         <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)"
-                            class="search-input" :placeholder="field.label" />
+                            class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch" />
                         <el-input v-model="searchForm[field.name]" v-if="['Integer'].includes(field.type)"
-                            class="search-input" :placeholder="field.label"></el-input>
+                            class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch"></el-input>
                         <el-input v-model="searchForm[field.name]" v-if="['String'].includes(field.type)"
-                            :placeholder="field.label" class="search-input" />
+                            :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
                         <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
                             value="" :placeholder="field.label" class="search-input">
                             <el-option v-for="item in dictionaries[field.typeName]" :label="item.label" :value="item.value"
@@ -72,7 +72,7 @@
             </slot>
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
                 <template slot-scope="scope">
-                    <el-button v-for="   action    in    actions.slice(0, actionCntToHide)   "
+                    <el-button :name="`${action.desc}`" v-for="   action    in    actions.slice(0, actionCntToHide)   "
                         :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
                         :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>

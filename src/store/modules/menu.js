@@ -62,6 +62,7 @@ function constantRouteToMenus() {
   return window.testRoutes;
 }
 
+/* only used by dynamic route
 export const loadView = (view) => { // 路由懒加载
   // return (resolve) => require([`@/views/${view}`], resolve)
   const modules = ['user', 'app', 'gcp']
@@ -77,5 +78,6 @@ export const loadView = (view) => { // 路由懒加载
   // TODO throw exception?
   return null;
 };
+*/
 
 export default menus;
