@@ -26,7 +26,7 @@ export function check(condition, message) {
 export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
-// TODO apis not used
+// TODO param apis not used
 export async function initMetadata(object, apis, name) {
   if (name) {
     const ret_metadata = object.$metadata.entitiesMap[name];
@@ -96,7 +96,7 @@ export function globalErrorHandler(err, vm, info) {
   err._handled = true;
   console.error('*** Error:', err, vm, info);
   const errCode = err?.response?.data.errCode;
-  let simpleMessage = null
+  let simpleMessage = err?.response?.data?.httpStatus == 500 ? null : err?.response?.data.message;
   switch (errCode) {
     case 'Forbidden.BadCredentialsException':
       simpleMessage = '错误的用户名或密码';

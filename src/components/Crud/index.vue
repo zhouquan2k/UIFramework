@@ -27,6 +27,7 @@
                             :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
                         <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
                             value="" :placeholder="field.label" class="search-input">
+                            <el-option label="-" :value="null" :key="`${field.name}-null`" />
                             <el-option v-for="item in dictionaries[field.typeName]" :label="item.label" :value="item.value"
                                 :key="`${field.name}-${item.value}`" />
                         </el-select>
