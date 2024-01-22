@@ -1,6 +1,7 @@
 import axios from 'axios'
 import store from '@/store'
 import { getAccessToken, getRefreshToken, setToken } from '@/utils/auth'
+import qs from 'qs';
 
 // Axios 无感知刷新令牌，参考 https://www.dashingdog.cn/article/11 与 https://segmentfault.com/a/1190000020210980 实现
 // 是否显示重新登录
@@ -27,7 +28,10 @@ service.interceptors.request.use(config => {
   if (getAccessToken()) {
     config.headers['Authorization'] = 'Bearer ' + getAccessToken() // 让每个请求携带自定义token 请根据实际情况自行修改
   }
-  return config
+  config.paramsSerializer = {
+    serialize: (params) => qs.stringify(params, { indices: false })
+  };
+  return config;
 }, error => {
   console.log(error)
   throw error;

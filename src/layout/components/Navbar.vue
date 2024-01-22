@@ -13,7 +13,7 @@
       <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav" />
     </div>
     <div v-if="title" class="title">
-      <div class="text">{{ title }} </div>
+      <div class="text"><a :href="url">{{ title }}</a></div>
     </div>
     <div class="right-menu">
       <span v-if="env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
@@ -80,7 +80,8 @@ export default {
       'avatar',
       'nickname',
       'device',
-      'title'
+      'title',
+      'url',
     ]),
     setting: {
       get() {
