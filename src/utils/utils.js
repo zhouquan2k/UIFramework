@@ -233,3 +233,17 @@ Vue.prototype.$success = function (msg) {
     type: 'success'
   });
 };
+
+Vue.prototype.$refreshToUrl = function (url, replace) {
+  const queryString = new URLSearchParams(this.$route.query).toString();
+  const currentUrl = this.$route.path + (queryString ? `?${queryString}` : '');
+  if (url == currentUrl) {
+    this.$router.replace('/').then(() => {
+      this.$router.replace(url);
+    });
+  }
+  else {
+    if (replace) this.$router.replace(url);
+    else this.$router.push(url);
+  }
+}
