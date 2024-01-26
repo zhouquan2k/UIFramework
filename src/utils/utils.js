@@ -99,8 +99,14 @@ export function globalErrorHandler(err, vm, info) {
   if (err._handled) return;
   err._handled = true;
   console.error('*** Error:', err, vm, info);
-  const errCode = err?.response?.data.errCode;
-  let simpleMessage = err?.response?.data?.httpStatus == 500 ? null : err?.response?.data.message;
+  let errCode = err?.response?.data.errCode;
+  let errInfo = err?.response?.data.message;
+  if (err.errCode) {
+    errCode = err.errCode;
+    errInfo = err.message;
+  }
+
+  let simpleMessage = err?.response?.data?.httpStatus == 500 ? null : errInfo;
   switch (errCode) {
     case 'Forbidden.BadCredentialsException':
       simpleMessage = '错误的用户名或密码';
@@ -112,7 +118,7 @@ export function globalErrorHandler(err, vm, info) {
   if (simpleMessage) {
     Element.Message({
       // dangerouslyUseHTMLString: true,
-      message: `${simpleMessage} (${err?.response?.data.message})`,
+      message: `${simpleMessage} (${errInfo})`,
       type: 'warning',
       duration: 5000,
       showClose: true,
@@ -240,7 +246,7 @@ Vue.prototype.$success = function (msg) {
 
 Vue.prototype.$refreshToUrl = function (url, replace) {
   const queryString = new URLSearchParams(this.$route.query).toString();
-  const currentUrl = this.$route.path + (queryString ? `?${queryString}` : '');
+  const currentUrl = this.$route.path;
   if (url == currentUrl) {
     this.$router.replace('/').then(() => {
       this.$router.replace(url);

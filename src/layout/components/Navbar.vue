@@ -19,6 +19,13 @@
       <span v-if="env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
       <span v-else class="right-menu-item" style="background:#E6A23C;color:white;">{{ env }}</span>
 
+
+      <div class="myicon">
+        <a href="/"><i class=" el-icon-s-home"></i>
+          <el-badge :value="12" class="badge"></el-badge>
+        </a>
+      </div>
+
       <template v-if="device !== 'mobile'">
         <!-- search id="header-search" class="right-menu-item" /-->
         <screenfull id="screenfull" class="right-menu-item hover-effect" />
@@ -207,6 +214,20 @@ export default {
 
     &:focus {
       outline: none;
+    }
+
+    .myicon {
+      display: inline-block;
+      vertical-align: top;
+      padding-left: 12px;
+      margin-right: -4px;
+      font-weight: 800 !important;
+      height: 100%;
+
+      .badge {
+        top: -5px;
+        left: -5px;
+      }
     }
 
     .right-menu-item {
