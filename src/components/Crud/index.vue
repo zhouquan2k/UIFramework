@@ -44,7 +44,8 @@
 
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" row-key="id" default-expand-all
             :tree-props="{ children: 'children' }" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
-            :row-class-name="rowClassName">
+            :row-class-name="rowClassName" :highlight-current-row="detailMethod ? true : false"
+            @current-change="defaultCurrentChange">
             <el-table-column v-if="checkbox" type="selection" width="55" />
             <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
                 v-if="!field.hidden && field.listable && (!columns || columns.includes(field.name))" :key="field.name"
@@ -56,7 +57,9 @@
                             dictionariesMap[field.typeName]?.[scope.row[field.name]]?.label
                         }}</el-tag>
                     <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
-                        {{ safeGet(scope.row, field.refData) }}</span>
+                        {{ field.refData && field.refData.startsWith('dictionary:') ?
+                            dictionariesMap[field.refData.substring(11)]?.[scope.row[field.name]]?.label : safeGet(scope.row,
+                                field.refData) }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
                         scope.row[field.name], field)
                     }}</span>
@@ -77,13 +80,15 @@
                         :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
                         :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
-                    <el-dropdown v-if="actions.length > actionCntToHide">
+                    <el-dropdown v-if="actions.length > actionCntToHide"
+                        @command="command => handleCommand(command, scope.row)">
                         <span class="el-dropdown-link">
                             更多<i class="el-icon-d-arrow-right el-icon--left" />
                         </span>
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item v-for="action in actions.slice(actionCntToHide)" :command="action.method"
-                                size="mini" type="text" :icon="action.icon" :key="action.name">{{
+                                v-if="!action.available || action.available(scope.row)" size="mini" type="text"
+                                :icon="action.icon" :key="action.name">{{
                                     action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
@@ -137,6 +142,7 @@ export default {
         autoSearch: { default: () => false },
         permissionName: { default: () => null },
         permissionAt: { default: () => null },
+        detailMethod: { default: () => null },
     },
     watch: {
         apis: {
@@ -187,6 +193,13 @@ export default {
         hasPermission,
         callMethod(methodName, ...params) {
             this.$emit('action', { name: methodName, params: params });
+        },
+        defaultCurrentChange(current) {
+            if (this.detailMethod)
+                this.detailMethod(current);
+        },
+        handleCommand(command, params) {
+            this.callMethod(command, params);
         },
         onReset() {
             this.searchForm = {};

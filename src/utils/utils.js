@@ -91,6 +91,10 @@ const mappingId = (idField, result) => {
 }
 
 import Element from 'element-ui';
+function emptyIfNull(x) {
+  return x ? '<br/><br/>' + x : '';
+}
+
 export function globalErrorHandler(err, vm, info) {
   if (err._handled) return;
   err._handled = true;
@@ -109,7 +113,7 @@ export function globalErrorHandler(err, vm, info) {
     Element.Message({
       // dangerouslyUseHTMLString: true,
       message: `${simpleMessage} (${err?.response?.data.message})`,
-      type: 'error',
+      type: 'warning',
       duration: 5000,
       showClose: true,
       center: false
@@ -118,7 +122,7 @@ export function globalErrorHandler(err, vm, info) {
   else {
     Element.Message({
       dangerouslyUseHTMLString: true,
-      message: `${err.name} - ${err.code} - ${err.message} <br/><br/> ${err?.response?.data.errCode} <br/><br/>${err?.response?.data.message}`,
+      message: `${err.name == 'AxiosError' ? '后端异常:' : err.name} ${err.code} - ${err.message}  ${emptyIfNull(err?.response?.data.errCode)} ${emptyIfNull(err?.response?.data.message)}`,
       type: 'error',
       duration: 0,
       showClose: true,
