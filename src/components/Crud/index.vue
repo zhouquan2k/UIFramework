@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="grid-toolbar">
+        <div class="grid-toolbar" v-if="toolbar">
             <div style="display: flex;width: 90%;">
                 <el-button v-if="buttons.add" type="success" plain icon="el-icon-plus" size="mini" @click="showAddDialog"
                     :disabled="permissionName ? !hasPermission(`${permissionName}.write`, permissionAt) : false">新建</el-button>
@@ -96,7 +96,7 @@
                 </template>
             </el-table-column>
         </el-table>
-        <el-pagination :hide-on-single-page="false" :total="list?.length" layout="prev, pager, next" />
+        <!--el-pagination :hide-on-single-page="false" :total="list?.length" layout="prev, pager, next" /-->
         <el-dialog v-if="dialogVisible" :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible">
             <DetailForm ref="detail-form" :name="name" :detail="detail" :formCols="formCols" :isUpdate="isUpdate"
                 :toManySelectData="toManySelectData" />
@@ -143,6 +143,7 @@ export default {
         permissionName: { default: () => null },
         permissionAt: { default: () => null },
         detailMethod: { default: () => null },
+        toolbar: { default: () => true },
     },
     watch: {
         apis: {

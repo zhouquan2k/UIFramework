@@ -5,7 +5,7 @@
                 :span="24 / (field.type == 'Text' ? 1 : formCols)"
                 v-if="!field.hidden && (['IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Text', 'Decimal', 'ToMany', 'ToOne', 'Date'].includes(field.type) || field.uiType)">
                 <el-form-item :name="field.name" :label="field.label" :prop="field.name"
-                    v-if="!isUpdate || field.updatable || field.listable">
+                    v-if="!isUpdate || field.updatable">
                     <span v-if="isUpdate && !field.updatable">{{ detail[field.name]
                     }}</span>
                     <component v-else-if="field.uiType" :is="getCustomComponent()[field.uiType]"
