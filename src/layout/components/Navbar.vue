@@ -22,7 +22,7 @@
 
       <div class="myicon">
         <a href="/"><i class=" el-icon-s-home"></i>
-          <el-badge :value="12" class="badge"></el-badge>
+          <el-badge :value="taskCount" class="badge"></el-badge>
         </a>
       </div>
 
@@ -89,6 +89,7 @@ export default {
       'device',
       'title',
       'url',
+      'taskCount',
     ]),
     setting: {
       get() {

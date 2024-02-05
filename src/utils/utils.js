@@ -96,6 +96,7 @@ function emptyIfNull(x) {
 }
 
 export function globalErrorHandler(err, vm, info) {
+  if (err == 'cancel') return; // it's a confirm.cancel
   if (err._handled) return;
   err._handled = true;
   console.error('*** Error:', err, vm, info);
@@ -244,6 +245,14 @@ Vue.prototype.$success = function (msg) {
     type: 'success'
   });
 };
+
+Vue.prototype.$Confirm = async function (confirmMessage) {
+  await this.$confirm(confirmMessage, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  });
+}
 
 Vue.prototype.$refreshToUrl = function (url, replace) {
   const queryString = new URLSearchParams(this.$route.query).toString();

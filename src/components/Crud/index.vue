@@ -98,11 +98,11 @@
         </el-table>
         <!--el-pagination :hide-on-single-page="false" :total="list?.length" layout="prev, pager, next" /-->
         <el-dialog v-if="dialogVisible" :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible">
-            <DetailForm ref="detail-form" :name="name" :detail="detail" :formCols="formCols" :isUpdate="isUpdate"
+            <DetailForm ref="detail-form" :name="name" :detail="detail" :formCols="formCols" :mode="mode"
                 :toManySelectData="toManySelectData" />
             <span slot="footer" class="dialog-footer">
                 <el-button @click="dialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="save">确定</el-button>
+                <el-button type="primary" @click="save" v-if="mode != 'readonly'">确定</el-button>
             </span>
         </el-dialog>
         <el-dialog title="确认删除" :visible.sync="deleteConfirmVisible">
@@ -179,7 +179,7 @@ export default {
 
             list: [],
             detail: {},
-            isUpdate: false,
+            mode: null, //readyonly, create, update
 
             dialogVisible: false,
             dialogTitle: '',
@@ -227,24 +227,29 @@ export default {
         showAddDialog(current) {
             this.detail = { parentId: current ? current[this.metadata.idField] : null };
             this.metadata.fields.filter(field => field.defaultValue).forEach(field => this.detail[field.name] = field.defaultValue);
-            this.dialogVisible = true;
+            this.mode = 'create';
             this.dialogTitle = '新建';
-            this.isUpdate = false;
-
+            this.dialogVisible = true;
         },
         showEditDialog(detail) {
             this.detail = { ...detail };
-            this.dialogVisible = true;
+            this.mode = 'update';
             this.dialogTitle = '编辑';
-            this.isUpdate = true;
+            this.dialogVisible = true;
+        },
+        showDetailDialog(detail) {
+            this.detail = { ...detail };
+            this.dialogTitle = '详情';
+            this.mode = 'readonly';
+            this.dialogVisible = true;
         },
         async save() {
             this.$refs['detail-form'].validate(async (valid) => {
                 if (!valid) return false;
                 let response;
-                if (this.isUpdate) {
+                if (this.mode == 'update') {
                     response = await this.apis.update(this.detail[this.metadata.idField], this.detail);
-                } else {
+                } else if (this.mode == 'create') {
                     response = await this.apis.create({ ...this.detail, ...this.searchForm });
                 }
                 this.$message.success('保存成功');
