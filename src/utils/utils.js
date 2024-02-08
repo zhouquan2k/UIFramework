@@ -168,8 +168,8 @@ export function hasPermission(permission, location, allPermissions) {
   if (location) permString += `@${location}`;
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions.indexOf(permString) >= 0 || allPermissions.indexOf(permission) >= 0
-    || allPermissions.indexOf(AdminPermission) >= 0;
+  return allPermissions && (allPermissions.indexOf(permString) >= 0 || allPermissions.indexOf(permission) >= 0
+    || allPermissions.indexOf(AdminPermission) >= 0);
 }
 
 export function trimProcess(object) {
