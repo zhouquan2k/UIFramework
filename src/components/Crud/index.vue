@@ -17,7 +17,7 @@
                     <slot name="searches">
                     </slot>
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
-                    <el-form-item v-for="field in seachableFields" :key="field.name"
+                    <el-form-item v-for="field in searchableFields" :key="field.name"
                         v-if="!field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParam[field.name]">
                         <el-input v-model="searchForm[field.name]" v-if="['ID', 'IDStr'].includes(field.type)"
                             class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch" />
@@ -47,9 +47,8 @@
             :row-class-name="rowClassName" :highlight-current-row="detailMethod ? true : false"
             @current-change="defaultCurrentChange">
             <el-table-column v-if="checkbox" type="selection" width="55" />
-            <el-table-column :prop="field.name" :label="field.label" v-for="field in metadata.fields"
-                v-if="!field.hidden && field.listable && (!columns || columns.includes(field.name))" :key="field.name"
-                sortable>
+            <el-table-column :prop="field.name" :label="field.label" v-for="field in tableFields"
+                v-if="!field.hidden && field.listable" :key="field.name" :width="field.colWidth" sortable>
                 <template slot-scope="scope">
                     <el-tag
                         v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name] !== null && scope.row[field.name] !== undefined"
@@ -69,26 +68,27 @@
                                 field) }}
                         </el-tag>
                     </div>
-                    <span v-else>{{ scope.row[field.name] }}</span>
+                    <span v-else>{{ safeGet(scope.row, field.name) }}</span>
                 </template>
             </el-table-column>
             <slot name="columns">
             </slot>
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
                 <template slot-scope="scope">
-                    <el-button :name="`${action.desc}`" v-for="   action    in    actions.slice(0, actionCntToHide)   "
+                    <el-button :name="`${action.desc}`"
+                        v-for="   action    in    availableActions(scope.row).slice(0, actionCntToHide)   "
                         :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
                         :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
                         }}</el-button>
-                    <el-dropdown v-if="actions.length > actionCntToHide"
+                    <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
                         @command="command => handleCommand(command, scope.row)">
                         <span class="el-dropdown-link">
                             更多<i class="el-icon-d-arrow-right el-icon--left" />
                         </span>
                         <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item v-for="action in actions.slice(actionCntToHide)" :command="action.method"
-                                v-if="!action.available || action.available(scope.row)" size="mini" type="text"
-                                :icon="action.icon" :key="action.name">{{
+                            <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
+                                :command="action.method" v-if="!action.available || action.available(scope.row)" size="mini"
+                                type="text" :icon="action.icon" :key="action.name">{{
                                     action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
@@ -166,9 +166,15 @@ export default {
         }
     },
     computed: {
-        seachableFields() {
+        searchableFields() {
             return [...this.metadata.searchFields, ...this.extSearchMeta];
         },
+        tableFields() {
+            return this.columns ? this.columns.map(col => {
+                return typeof col == 'string' ? this.metadata.fieldMap[col] : { ...col, listable: true };
+            }) : this.metadata.fields;
+        },
+
     },
     components: { RightToolbar, DictionarySelect, DetailForm },
     data() {
@@ -192,6 +198,9 @@ export default {
     },
     methods: {
         hasPermission,
+        availableActions(param) {
+            return this.actions.filter(action => !action.available || action.available(param));
+        },
         callMethod(methodName, ...params) {
             this.$emit('action', { name: methodName, params: params });
         },
@@ -283,8 +292,8 @@ export default {
             this.tableUpdateKey++;
         }
     },
-    async created() {
-        await initMetadata(this, this.apis, this.name);
+    created() {
+        initMetadata(this, this.apis, this.name);
         Object.assign(this.searchForm, this.searches);
         if (this.initList) this.getList();
     }
