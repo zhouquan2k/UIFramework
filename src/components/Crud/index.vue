@@ -47,8 +47,8 @@
             :row-class-name="rowClassName" :highlight-current-row="detailMethod ? true : false"
             @current-change="defaultCurrentChange">
             <el-table-column v-if="checkbox" type="selection" width="55" />
-            <el-table-column :prop="field.name" :label="field.label" v-for="field in tableFields"
-                v-if="!field.hidden && field.listable" :key="field.name" :width="field.colWidth" sortable>
+            <el-table-column :prop="field.name" :label="field.label" v-for="field in tableFields" :key="field.name"
+                :width="field.colWidth" sortable>
                 <template slot-scope="scope">
                     <el-tag
                         v-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name] !== null && scope.row[field.name] !== undefined"
@@ -172,7 +172,7 @@ export default {
         tableFields() {
             return this.columns ? this.columns.map(col => {
                 return typeof col == 'string' ? this.metadata.fieldMap[col] : { ...col, listable: true };
-            }) : this.metadata.fields;
+            }) : this.metadata.fields.filter(field => !field.hidden && field.listable);
         },
 
     },
