@@ -1,0 +1,202 @@
+<template>
+    <div>
+        <div class="grid-toolbar" v-if="toolbarVisible">
+            <div style="display: flex;width: 90%;">
+                <i v-if="searches?.length > 0" class="el-icon-arrow-right"
+                    style="color:#409EFF;margin-top:5px;margin-left:5px;" @click="searchVisible = !searchVisible"></i>
+                <el-form v-show="searchVisible && searches?.length > 0" inline class="search-form" v-model="searchForm">
+                    <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
+                    <el-form-item v-for="field in searches" :key="field.name"
+                        v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParams[field.name]">
+                        <template v-if="$scopedSlots[`searches-${field.name}`]">
+                            <slot :name="`searches-${field.name}`"></slot>
+                        </template>
+                        <el-input v-model="searchForm[field.name]" v-else-if="['ID', 'IDStr'].includes(field.type)"
+                            class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch" />
+                        <el-input v-model="searchForm[field.name]" v-else-if="['Integer'].includes(field.type)"
+                            class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch"></el-input>
+                        <el-input v-model="searchForm[field.name]" v-else-if="['String'].includes(field.type)"
+                            :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
+                        <DictionarySelect :theClass="field.name" v-model="searchForm[field.name]"
+                            :dictionary="field.typeName" v-else-if="['Enum', 'Dictionary'].includes(field.type)"
+                            :placeholder="field.label" :emptyOption="true" />
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" plain @click="onSearch">搜索</el-button>
+                        <el-button @click="onReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+            <slot name="buttons">
+            </slot>
+        </div>
+
+        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" row-key="id" default-expand-all
+            @selection-change="handleSelectionChange" @row-dblclick="handleDblClick" :row-class-name="rowClassName">
+            <el-table-column v-if="checkboxVisible" type="selection" width="55" />
+            <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
+                :width="field.colWidth" sortable>
+                <template slot-scope="scope">
+                    <template v-if="$scopedSlots[`columns-${field.name}`]">
+                        <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
+                    </template>
+                    <DictionaryTag v-else-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
+                        :value="scope.row[field.name]" :dictName="field.typeName" />
+                    <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
+                        {{ field.refData && field.refData.startsWith('dictionary:') ?
+                            dictionariesMap[field.refData.substring(11)]?.[scope.row[field.name]]?.label :
+                            safeGet(scope.row,
+                                field.refData) }}</span>
+                    <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
+                        safeGet(scope.row, field.name), field)
+                    }}</span>
+                    <span v-else>{{ safeGet(scope.row, field.name) }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
+                <template slot-scope="scope">
+                    <el-button :name="`${action.desc}`"
+                        v-for="   action    in    availableActions(scope.row).slice(0, actionCntToHide)   "
+                        :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
+                        :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
+                        }}</el-button>
+                    <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
+                        @command="command => callMethod(command, scope.row)">
+                        <span class="el-dropdown-link">
+                            更多<i class="el-icon-d-arrow-right el-icon--left" />
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
+                                :command="action.method" v-if="!action.available || action.available(scope.row)" size="mini"
+                                type="text" :icon="action.icon" :key="action.name">{{
+                                    action.desc
+                                }}</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </template>
+            </el-table-column>
+        </el-table>
+    </div>
+</template>
+  
+<script>
+import { dateFormatter, safeGet, getManyItemLabel, hasPermission } from "@/utils/utils";
+import DictionarySelect from '@/components/dictionary_select';
+import DictionaryTag from '@/components/dictionary_tag.vue';
+export default {
+    name: 'SimpleTable',
+    props: {
+        columns: { type: Array },
+        searchMethod: { type: Function },
+        actions: { type: Array, default: () => ([]) },
+        buttons: { type: Array, default: () => ([]) },
+        searches: { type: Array, default: () => ([]) },
+        searchParams: { type: Object, default: () => ({}) }, //fixed search param
+
+        toolbarVisible: { type: Boolean, default: () => true },
+        searchVisible: { type: Boolean, default: () => false },
+        checkboxVisible: { type: Boolean, default: () => false },
+        actionCntToHide: { type: Number, default: () => 2 },
+        rowClassName: { default: () => null }, //function or string, pass 
+    },
+    /*
+    watch: {
+        searches: {
+            handler(newVal) {
+                Object.assign(this.searchForm, newVal);
+                if (this.autoSearch) this.onSearch();
+            },
+            deep: true,
+        },
+        searchParam: {
+            handler(newVal) {
+                if (this.autoSearch) this.onSearch();
+            },
+            deep: true,
+        }
+    },
+    */
+    components: { DictionarySelect, DictionaryTag },
+    data() {
+        return {
+            searchForm: {},
+            list: [],
+
+            dateFormatter, safeGet, getManyItemLabel,
+            tableUpdateKey: 2617,
+        };
+    },
+    methods: {
+        hasPermission,
+        availableActions(param) {
+            return this.actions.filter(action => !action.available || action.available(param));
+        },
+        callMethod(methodName, ...params) {
+            this.$emit('action', { name: methodName, params: params });
+        },
+        onReset() {
+            this.searchForm = {};
+            this.onSearch();
+        },
+        async onSearch() {
+            for (const key in this.searchForm) {
+                if (this.searchForm[key] === "") delete this.searchForm[key];
+            }
+            console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParams));
+            Object.assign(this.searchForm, this.searchParams);
+            this.list = await this.searchMethod(this.searchForm);
+        },
+        handleSelectionChange(data) {
+            this.$emit('selection-change', data);
+        },
+        handleDblClick(data) {
+            this.$emit('row-dblclick', data);
+        },
+        refreshTable() {
+            this.tableUpdateKey++;
+        }
+    },
+    created() {
+        this.onSearch();
+    }
+};
+</script>
+  
+<style scoped>
+# .el-form-item {
+    margin-right: 10px;
+}
+
+.el-dropdown-link {
+    margin-left: 10px;
+    font-size: 12px;
+    color: #409EFF;
+}
+
+.search-form {
+    margin-left: 10px;
+    /* margin-right: auto; */
+    margin-top: -2px;
+    width: 100%
+}
+
+.search-input {
+    width: 100px;
+    line-height: 20px;
+    height: 28px;
+}
+
+.search-input>>>.el-input--small .el-input__inner {
+    height: 28px;
+    line-height: 28px;
+}
+
+.grid-toolbar {
+    display: flex;
+    justify-content: space-between;
+    height: 30px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+</style>
+  

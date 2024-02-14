@@ -1,5 +1,7 @@
 <template>
-    <el-select :value="value" @change="onSelect" filterable :filter-method="filterMethod" :placeholder="placeholder">
+    <el-select :class="theClass" @change="onSelect" filterable :filter-method="filterMethod" :placeholder="placeholder"
+        :value="value">
+        <el-option v-if="emptyOption" label="-" :value="null" key="null" />
         <el-option v-for="item in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label" :value="item.value"
             :key="item.value" />
     </el-select>
@@ -12,8 +14,10 @@ export default {
         event: 'change'
     },
     props: {
+        theClass: { default: () => null },
+        emptyOption: { default: () => false },
         value: {},
-        dictionary: {},
+        dictionary: { type: String }, // dictinaryName
         placeholder: { default: () => '' }
     },
     data() {

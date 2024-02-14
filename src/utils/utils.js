@@ -26,15 +26,34 @@ export function check(condition, message) {
 export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
+Vue.prototype.getEntityFields = function (entityName, fieldNames) {
+  if (fieldNames == 'listable')
+    return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.listable);
+  else if (fieldNames == 'searchable')
+    return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.searchable);
+  return fieldNames.map(fieldName => {
+    let entity = this.$metadata.entitiesMap[entityName];
+    if (fieldName.indexOf('.') < 0) return entity.fieldMap[fieldName];
+    const propertyName = fieldName.split('.')[0];
+    const subPropertyName = fieldName.split('.')[1];
+    const objField = entity.fieldMap[propertyName];
+    // TODO 递归
+    const subEntityName = objField.typeName;
+    const subEntity = this.$metadata.entitiesMap[subEntityName];
+    const field = subEntity.fieldMap[subPropertyName];
+    return { ...field, name: `${propertyName}.${field.name}` };
+  });
+}
+
 // TODO param apis not used
 export function initMetadata(object, apis, name) {
   if (name) {
     const ret_metadata = object.$metadata.entitiesMap[name];
     check(ret_metadata != null, `can't find ${name}`)
     ret_metadata.searchFields = ret_metadata.fields.filter(field => field.searchable);
-    ret_metadata.fieldMap = {};
+    // ret_metadata.fieldMap = {};
     ret_metadata.fields.forEach(field => {
-      ret_metadata.fieldMap[field.name] = field;
+      // ret_metadata.fieldMap[field.name] = field;
       if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
     });
     object.metadata = ret_metadata;
@@ -207,7 +226,7 @@ export function moneyFormatter(x, y, value) {
 }
 
 export function dateFormatter(x, y, value, meta) {
-  return meta.type == 'Date' ? value?.substring(0, 10) : value;
+  return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
 }
 
 //TODO is really formatter?

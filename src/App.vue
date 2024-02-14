@@ -26,6 +26,10 @@ export default {
     const allMetadata = { dictionariesMap: {} };
     allMetadata.entitiesMap = response.entities.reduce((obj, item) => {
       obj[item.name] = item;
+      item.fieldMap = item.fields.reduce((map, field) => {
+        map[field.name] = field;
+        return map;
+      }, {});
       return obj;
     }, {});
 
