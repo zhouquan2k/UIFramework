@@ -1,7 +1,6 @@
 <template>
     <el-select :class="theClass" @change="onSelect" filterable :filter-method="filterMethod" :placeholder="placeholder"
-        :value="value">
-        <el-option v-if="emptyOption" label="-" :value="null" key="null" />
+        :value="value" :multiple="multiple" :clearable="clearable">
         <el-option v-for="item in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label" :value="item.value"
             :key="item.value" />
     </el-select>
@@ -11,12 +10,14 @@ import pinyin from "pinyin";
 export default {
     model: {
         prop: 'value',
-        event: 'change'
+        event: 'change',
     },
     props: {
         theClass: { default: () => null },
         emptyOption: { default: () => false },
+        clearable: { default: () => true },
         value: {},
+        multiple: { default: () => false },
         dictionary: { type: String }, // dictinaryName
         placeholder: { default: () => '' }
     },

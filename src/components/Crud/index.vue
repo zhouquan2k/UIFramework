@@ -25,12 +25,9 @@
                             class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch"></el-input>
                         <el-input v-model="searchForm[field.name]" v-if="['String'].includes(field.type)"
                             :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
-                        <el-select v-model="searchForm[field.name]" v-if="['Enum', 'Dictionary'].includes(field.type)"
-                            value="" :placeholder="field.label" class="search-input">
-                            <el-option label="-" :value="null" :key="`${field.name}-null`" />
-                            <el-option v-for="item in dictionaries[field.typeName]" :label="item.label" :value="item.value"
-                                :key="`${field.name}-${item.value}`" />
-                        </el-select>
+                        <DictionarySelect :theClass="field.name" v-model="searchForm[field.name]"
+                            :dictionary="field.typeName" v-if="['Enum', 'Dictionary'].includes(field.type)"
+                            :placeholder="field.label" :clearable="true" :multiple="true" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" plain @click="onSearch">搜索</el-button>

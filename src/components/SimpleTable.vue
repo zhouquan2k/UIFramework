@@ -19,7 +19,7 @@
                             :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
                         <DictionarySelect :theClass="field.name" v-model="searchForm[field.name]"
                             :dictionary="field.typeName" v-else-if="['Enum', 'Dictionary'].includes(field.type)"
-                            :placeholder="field.label" :emptyOption="true" />
+                            :placeholder="field.label" :clearable="true" :multiple="true" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" plain @click="onSearch">搜索</el-button>
