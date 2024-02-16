@@ -21,6 +21,7 @@ export default {
     }
   },
   created() {
+    store.dispatch('GetVersion').catch(err => { });
     store.dispatch('GetInfo').catch(err => { });
   }
 }

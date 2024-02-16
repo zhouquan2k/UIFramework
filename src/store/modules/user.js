@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@user/security_api.js';
+import { login, logout, getInfo, getVersion } from '@user/security_api.js';
 import { getAccessToken, setToken, removeToken, getRefreshToken } from '@/utils/auth'
 
 const user = {
@@ -32,6 +32,9 @@ const user = {
     },
     SET_PERMISSIONS: (state, permissions) => {
       state.permissions = permissions
+    },
+    SET_VERSION: (state, version) => {
+      state.version = version;
     }
   },
 
@@ -61,6 +64,16 @@ const user = {
           commit('SET_NICKNAME', user.username)
           commit('SET_AVATAR', user.avatar)
           resolve(user)
+        }).catch(error => {
+          // reject(error)
+        })
+      })
+    },
+    GetVersion({ commit, state }) {
+      return new Promise((resolve, reject) => {
+        getVersion().then(version => {
+          commit('SET_VERSION', version)
+          resolve(version)
         }).catch(error => {
           // reject(error)
         })

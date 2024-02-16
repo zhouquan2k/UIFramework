@@ -16,8 +16,10 @@
       <div class="text"><a :href="url">{{ title }}</a></div>
     </div>
     <div class="right-menu">
+
       <span v-if="env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
-      <span v-else class="right-menu-item" style="background:#E6A23C;color:white;">{{ env }}</span>
+      <span v-else class="right-menu-item" style="background:#E6A23C;color:white; width:60px; text-align:center">{{ env
+      }}<el-badge :value="$store.state.user.version" class="badge" style="top:-65px;left:0px;"></el-badge></span>
 
 
       <div class="myicon">
