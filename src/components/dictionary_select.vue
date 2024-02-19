@@ -1,6 +1,6 @@
 <template>
     <el-select :class="theClass" @change="onSelect" filterable :filter-method="filterMethod" :placeholder="placeholder"
-        :value="value" :multiple="multiple" :clearable="clearable">
+        :value="value" :multiple="multiple" :clearable="clearable" :disabled="disabled">
         <el-option v-for="item in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label" :value="item.value"
             :key="item.value" />
     </el-select>
@@ -19,7 +19,8 @@ export default {
         value: {},
         multiple: { default: () => false },
         dictionary: { type: String }, // dictinaryName
-        placeholder: { default: () => '' }
+        placeholder: { default: () => '' },
+        disabled: { default: () => false }
     },
     data() {
         return {

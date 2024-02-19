@@ -32,6 +32,7 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   else if (fieldNames == 'searchable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.searchable);
   return fieldNames.map(fieldName => {
+    if (typeof fieldName === "object") return fieldName;
     let entity = this.$metadata.entitiesMap[entityName];
     if (fieldName.indexOf('.') < 0) return entity.fieldMap[fieldName];
     const propertyName = fieldName.split('.')[0];
@@ -44,6 +45,8 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
     return { ...field, name: `${propertyName}.${field.name}` };
   });
 }
+
+
 
 // TODO param apis not used
 export function initMetadata(object, apis, name) {
@@ -287,4 +290,8 @@ Vue.prototype.$refreshToUrl = function (url, replace) {
     if (replace) this.$router.replace(url);
     else this.$router.push(url);
   }
+}
+
+Vue.prototype.$dictLabel = function (dictName, value) {
+  return this.$metadata.dictionariesMap[dictName]?.[value]?.label;
 }
