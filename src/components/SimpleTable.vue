@@ -31,9 +31,15 @@
             </slot>
         </div>
 
-        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" row-key="id" default-expand-all
-            @selection-change="handleSelectionChange" @row-dblclick="handleDblClick" :row-class-name="rowClassName">
-            <el-table-column v-if="checkboxVisible" type="selection" width="55" />
+        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
+            :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
+            :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)">
+            <el-table-column v-if="checkboxVisible" type="selection" width="55" :default-expand-all="false" />
+            <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
+                <template slot-scope="scope">
+                    <slot name="expand" :data="scope.row" />
+                </template>
+            </el-table-column>
             <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
                 :width="field.colWidth" sortable>
                 <template slot-scope="scope">
@@ -86,6 +92,7 @@ import DictionaryTag from '@/components/dictionary_tag.vue';
 export default {
     name: 'SimpleTable',
     props: {
+        idCol: { default: () => 'id' },
         columns: { type: Array },
         searchMethod: { type: Function },
         actions: { type: Array, default: () => ([]) },
