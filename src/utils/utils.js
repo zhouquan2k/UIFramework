@@ -27,6 +27,8 @@ export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 Vue.prototype.getEntityFields = function (entityName, fieldNames) {
+  const entityMetadata = this.$metadata.entitiesMap[entityName];
+  check(entityMetadata != null, `can't find entity: ${entityName}`)
   if (fieldNames == 'listable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.listable);
   else if (fieldNames == 'searchable')
@@ -35,6 +37,7 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
     if (typeof fieldName === "object") return fieldName;
     let entity = this.$metadata.entitiesMap[entityName];
     if (fieldName.indexOf('.') < 0) return entity.fieldMap[fieldName];
+    // field from sub entity
     const propertyName = fieldName.split('.')[0];
     const subPropertyName = fieldName.split('.')[1];
     const objField = entity.fieldMap[propertyName];
@@ -190,7 +193,7 @@ export function hasPermission(permission, location, allPermissions) {
   if (location) permString += `@${location}`;
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions && (allPermissions.indexOf(permString) >= 0 || allPermissions.indexOf(permission) >= 0
+  return allPermissions && (allPermissions.some(perm => perm.startsWith(permString) || perm.startsWith(permission))
     || allPermissions.indexOf(AdminPermission) >= 0);
 }
 
