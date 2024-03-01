@@ -62,9 +62,9 @@
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
                 <template slot-scope="scope">
                     <el-button :name="`${action.desc}`"
-                        v-for="   action    in    availableActions(scope.row).slice(0, actionCntToHide)   "
-                        :key="`button-${action.method}`" v-if="!action.available || action.available(scope.row)" type="text"
-                        :style="action.style" @click="callMethod(action.method, scope.row)">{{ action.desc
+                        v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"
+                        :key="`button-${action.event}`" v-if="!action.available || action.available(scope.row)" type="text"
+                        :style="action.style" @click="callMethod(action.event, scope.row)">{{ action.desc
                         }}</el-button>
                     <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
                         @command="command => callMethod(command, scope.row)">
@@ -73,7 +73,7 @@
                         </span>
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
-                                :command="action.method" v-if="!action.available || action.available(scope.row)" size="mini"
+                                :command="action.event" v-if="!action.available || action.available(scope.row)" size="mini"
                                 type="text" :icon="action.icon" :key="action.name">{{
                                     action.desc
                                 }}</el-dropdown-item>
@@ -98,31 +98,23 @@ export default {
         actions: { type: Array, default: () => ([]) },
         buttons: { type: Array, default: () => ([]) },
         searches: { type: Array, default: () => ([]) },
-        searchParams: { type: Object, default: () => ({}) }, //fixed search param
-
+        searchParams: { type: Object, default: () => ({}) },
+        fixedSearchParams: { type: Object, default: () => ({}) },
         toolbarVisible: { type: Boolean, default: () => true },
         searchVisible: { type: Boolean, default: () => false },
         checkboxVisible: { type: Boolean, default: () => false },
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
     },
-    /*
+
     watch: {
-        searches: {
+        searchParams: {
             handler(newVal) {
-                Object.assign(this.searchForm, newVal);
-                if (this.autoSearch) this.onSearch();
-            },
-            deep: true,
-        },
-        searchParam: {
-            handler(newVal) {
-                if (this.autoSearch) this.onSearch();
+                this.onSearch();
             },
             deep: true,
         }
     },
-    */
     components: { DictionarySelect, DictionaryTag },
     data() {
         return {
@@ -138,20 +130,24 @@ export default {
         availableActions(param) {
             return this.actions.filter(action => !action.available || action.available(param));
         },
-        callMethod(methodName, ...params) {
-            this.$emit('action', { name: methodName, params: params });
+        callMethod(event, row) {
+            // this.$emit('action', { name: methodName, params: params });
+            this.$emit(event, row);
         },
         onReset() {
             this.searchForm = {};
+            this.$emit('reset');
             this.onSearch();
         },
         async onSearch() {
             for (const key in this.searchForm) {
                 if (this.searchForm[key] === "") delete this.searchForm[key];
             }
+            for (const key in this.searchParams) {
+                if (this.searchParams[key] === "") delete this.searchParams[key];
+            }
             console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParams));
-            Object.assign(this.searchForm, this.searchParams);
-            this.list = await this.searchMethod(this.searchForm);
+            this.list = await this.searchMethod({ ...this.searchForm, ...this.searchParams, ...this.fixedSearchParams });
         },
         handleSelectionChange(data) {
             this.$emit('selection-change', data);

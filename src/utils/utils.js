@@ -83,13 +83,17 @@ function _addRule(object, name, rule) {
 export const defaultCrudActions = [
   {
     desc: "修改",
+    event: "edit",
     method: 'showEditDialog',
   },
   {
     desc: '删除',
+    event: 'delete',
     method: 'showDeleteConfirm',
   }
 ];
+
+
 
 export const defaultActionProc = function (action) {
   let crud = this.$refs.crud; //TODO how about ref other than crud?
@@ -293,6 +297,15 @@ Vue.prototype.$refreshToUrl = function (url, replace) {
     if (replace) this.$router.replace(url);
     else this.$router.push(url);
   }
+}
+
+// pass event to parent listener if exists
+Vue.prototype.$defaultActionEmit = function (event, row) {
+  if (this.$listeners[event]) {
+    this.$emit(event, row);
+    return true;
+  }
+  return false;
 }
 
 Vue.prototype.$dictLabel = function (dictName, value) {
