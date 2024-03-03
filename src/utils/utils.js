@@ -60,6 +60,7 @@ export function initMetadata(object, apis, name) {
     // ret_metadata.fieldMap = {};
     ret_metadata.fields.forEach(field => {
       // ret_metadata.fieldMap[field.name] = field;
+      field.key = field.name;
       if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
     });
     object.metadata = ret_metadata;
@@ -156,7 +157,7 @@ export function globalErrorHandler(err, vm, info) {
   else {
     Element.Message({
       dangerouslyUseHTMLString: true,
-      message: `${err.name == 'AxiosError' ? '后端异常:' : err.name} ${err.code} - ${err.message}  ${emptyIfNull(err?.response?.data.errCode)} ${emptyIfNull(err?.response?.data.message)}`,
+      message: `${err.name == 'AxiosError' ? '后端异常:' : err.name} ${err.code} - ${err.message}  ${emptyIfNull(err?.response?.data.errCode)} ${emptyIfNull(err?.response?.data.message)}`.replace(/\n/g, '<br/><br/>'),
       type: 'error',
       duration: 0,
       showClose: true,
