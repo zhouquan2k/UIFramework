@@ -33,7 +33,8 @@
 
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
-            :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)">
+            :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)"
+            :empty-text="emptyText">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" :default-expand-all="false" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
@@ -105,6 +106,7 @@ export default {
         checkboxVisible: { type: Boolean, default: () => false },
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
+        emptyText: { default: () => null },
     },
     /*
     watch: {
