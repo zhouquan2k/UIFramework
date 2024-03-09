@@ -16,13 +16,6 @@
       <div class="text"><a :href="url">{{ title }}</a></div>
     </div>
     <div class="right-menu">
-
-      <span v-if="env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
-      <span v-else class="right-menu-item"
-        style="background:#E6A23C;color:white; width:60px; text-align:center;padding-top:5px;">{{ env
-        }}<el-badge :value="$store.state.user.version" class="badge" style="top:-67px;left:0px;"></el-badge></span>
-
-
       <div class="myicon">
         <a href="/"><i class=" el-icon-s-home"></i>
           <el-badge :value="taskCount" class="badge"></el-badge>
@@ -56,6 +49,10 @@
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
+      <span v-if="env == 'Prod'" class="right-menu-item" style="background:#67C23A;color:white;">Prod</span>
+      <span v-else class="right-menu-item"
+        style="background:#E6A23C;color:white; width:60px; text-align:center;padding-top:5px;">{{ env
+        }}<el-badge :value="$store.state.user.version" class="badge" style="top:-67px;left:0px;"></el-badge></span>
     </div>
   </div>
 </template>
