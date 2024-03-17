@@ -108,23 +108,15 @@ export default {
         rowClassName: { default: () => null }, //function or string, pass 
         emptyText: { default: () => null },
     },
-    /*
     watch: {
-        searches: {
+        searchParams: {
             handler(newVal) {
-                Object.assign(this.searchForm, newVal);
-                if (this.autoSearch) this.onSearch();
-            },
-            deep: true,
-        },
-        searchParam: {
-            handler(newVal) {
-                if (this.autoSearch) this.onSearch();
+                //if (this.autoSearch)
+                this.onSearch();
             },
             deep: true,
         }
     },
-    */
     components: { DictionarySelect, DictionaryTag },
     data() {
         return {

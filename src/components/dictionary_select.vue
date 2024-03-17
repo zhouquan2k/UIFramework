@@ -37,8 +37,8 @@ export default {
                     let optionPinyin = pinyin(item.label, {
                         style: pinyin.STYLE_FIRST_LETTER
                     }).join('');
-                    // 检查输入的拼音首字母是否匹配
-                    return optionPinyin.indexOf(val.toLowerCase()) === 0;
+                    // 检查输入的拼音首字母是否匹配 或者 字符匹配
+                    return optionPinyin.indexOf(val.toLowerCase()) === 0 || item.label.indexOf(val) > -1;
                 });
             } else {
                 this.dictionaryData = this.$metadata.dictionaries[this.dictionary];
