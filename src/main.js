@@ -24,6 +24,11 @@ import plugins from './plugins'; // plugins
 Vue.use(plugins);
 Vue.config.productionTip = false
 
+// print.js
+import print from './components/printjs'
+import './components/printjs/sass/index.scss';
+Vue.prototype.$print = print;
+
 // route related
 import Router from 'vue-router'
 Vue.use(Router);
