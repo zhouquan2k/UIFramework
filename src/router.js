@@ -19,6 +19,7 @@ export function initRouter() {
                 path: '/profile',
                 component: (resolve) => require(['@user/Profile'], resolve),
             },
+            /*
             {
                 name: '_版本说明',
                 path: '/release-notes',
@@ -27,6 +28,7 @@ export function initRouter() {
                     window.location.href = "https://www.progartisan.com/gcp-release-notes";
                 }
             },
+            */
         ],
     };
 
