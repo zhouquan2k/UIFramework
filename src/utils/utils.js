@@ -194,7 +194,8 @@ export function hasPermission(permission, location, allPermissions) {
   if (location) permString += `@${location}`;
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions && (allPermissions.some(perm => perm.startsWith(permString) || perm.startsWith(permission))
+  // TODO 不能写成perm.startsWith(permission)会导致错误的匹配其他项目的权限
+  return allPermissions && (allPermissions.some(perm => perm.startsWith(permString))
     || allPermissions.indexOf(AdminPermission) >= 0);
 }
 
