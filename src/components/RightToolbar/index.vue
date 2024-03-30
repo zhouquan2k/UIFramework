@@ -12,12 +12,7 @@
       </el-tooltip>
     </el-row>
     <el-dialog :title="title" :visible.sync="open" append-to-body>
-      <el-transfer
-        :titles="['显示', '隐藏']"
-        v-model="value"
-        :data="columns"
-        @change="dataChange"
-      ></el-transfer>
+      <el-transfer :titles="['显示', '隐藏']" v-model="value" :data="columns" @change="dataChange"></el-transfer>
     </el-dialog>
   </div>
 </template>
@@ -64,7 +59,7 @@ export default {
     dataChange(data) {
       for (var item in this.columns) {
         const key = this.columns[item].key;
-        this.columns[item].visible = !data.includes(key);
+        this.columns[item].hidden = data.includes(key);
       }
     },
     // 打开显隐列dialog
@@ -81,6 +76,7 @@ export default {
   display: block;
   margin-left: 0px;
 }
+
 ::v-deep .el-transfer__button:first-child {
   margin-bottom: 10px;
 }

@@ -61,6 +61,7 @@ export function initMetadata(object, apis, name) {
     // ret_metadata.fieldMap = {};
     ret_metadata.fields.forEach(field => {
       // ret_metadata.fieldMap[field.name] = field;
+      field.key = field.name;
       if (!field.nullable && !field.hidden) _addRule(object, field.name, { required: true, message: `请输入'${field.label}'`, trigger: 'blur' });
     });
     object.metadata = ret_metadata;
@@ -161,7 +162,7 @@ export function globalErrorHandler(err, vm, info) {
   else {
     Element.Message({
       dangerouslyUseHTMLString: true,
-      message: `${err.name == 'AxiosError' ? '后端异常:' : err.name} ${err.code} - ${err.message}  ${emptyIfNull(err?.response?.data.errCode)} ${emptyIfNull(err?.response?.data.message)}`,
+      message: `${err.name == 'AxiosError' ? '后端异常:' : err.name} ${err.code} - ${err.message}  ${emptyIfNull(err?.response?.data.errCode)} ${emptyIfNull(err?.response?.data.message)}`.replace(/\n/g, '<br/><br/>'),
       type: 'error',
       duration: 0,
       showClose: true,
@@ -198,7 +199,8 @@ export function hasPermission(permission, location, allPermissions) {
   if (location) permString += `@${location}`;
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
-  return allPermissions && (allPermissions.some(perm => perm.startsWith(permString) || perm.startsWith(permission))
+  // TODO 不能写成perm.startsWith(permission)会导致错误的匹配其他项目的权限
+  return allPermissions && (allPermissions.some(perm => perm.startsWith(permString) || perm === permission)
     || allPermissions.indexOf(AdminPermission) >= 0);
 }
 
