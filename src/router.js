@@ -38,6 +38,10 @@ export function initRouter() {
             component: (resolve) => require(['@user/login'], resolve),
         },
         {
+            path: '/ui-artisan',
+            component: (resolve) => require(['@/tools/UIArtisan.vue'], resolve),
+        },
+        {
             path: '/hello2',
             component: (resolve) => require(['@/components/HelloWorld'], resolve),
         },

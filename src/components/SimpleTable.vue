@@ -147,7 +147,8 @@ export default {
                 if (this.searchParams[key] === "") delete this.searchParams[key];
             }
             console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParams));
-            this.list = await this.searchMethod({ ...this.searchForm, ...this.searchParams, ...this.fixedSearchParams });
+            if (this.searchMethod)
+                this.list = await this.searchMethod({...this.searchForm, ...this.searchParams, ...this.fixedSearchParams});
         },
         handleSelectionChange(data) {
             this.$emit('selection-change', data);

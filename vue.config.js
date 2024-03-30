@@ -16,6 +16,11 @@ module.exports = defineConfig({
         '@user': resolve('src/user'),
         '@gcp': resolve('src/gcp'),
       },
+    },
+    performance: {
+      maxEntrypointSize: 5000000, // 入口起点的最大体积（以字节为单位）
+      maxAssetSize: 2000000, // 生成文件的最大体积（以字节为单位）
+      hints: 'warning' // 当文件大小超过限制时给出的提示，可以是 'warning'、'error' 或 false
     }
   },
   devServer: {

@@ -1,40 +1,40 @@
 <template>
-    <Crud ref="crud" desc="检验/检查" name="VisitAction" :apis="projectApi" :searchVisible="true" @action="defaultActionProc"
-        :actions="actions">
-    </Crud>
+    <SimpleTable :searchVisible="true" :columns="getEntityFields('Prescription', 'listable')"
+        :searches="getEntityFields('Prescription', 'searchable')" :searchMethod="onSearch" :actions="actions">
+    </SimpleTable>
 </template>
 <script>
-import Crud from '@/components/Crud';
-import { projectApi } from '@gcp/project_api';
-import { defaultActionProc } from '@/utils/utils';
+import SimpleTable from '@/components/SimpleTable.vue';
+import { visitApi } from '@gcp/visit/visit_api';
+
 import { rootPath } from '@gcp/router';
 export default {
     props: {
-        visitId: { default: () => null },
+        projectId: {},
     },
     watch: {
+        /*
         'visitId': {
             async handler(newVal) {
                 this.initVisitId(newVal);
             },
         },
+        */
     },
-    components: { Crud },
+    components: { SimpleTable },
     data() {
         return {
-            projectApi,
             actions: [
                 {
                     desc: "详情",
-                    method: 'onProjectDetail',
+                    method: 'onPrescriptionDetail',
                 },
             ]
         }
     },
     methods: {
-        defaultActionProc,
-        onProjectDetail(project) {
-            this.$router.push(`${rootPath}/projects/${project.projectId}`)
+        async onSearch(params) {
+            return await visitApi.searchProjectPrescriptions(this.projectId, params);
         }
     }
 }

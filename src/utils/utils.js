@@ -26,6 +26,7 @@ export function check(condition, message) {
 export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
+// 2nd parameter: fieldNames/field object array, or 'listable', 'searchable'
 Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   const entityMetadata = this.$metadata.entitiesMap[entityName];
   check(entityMetadata != null, `can't find entity: ${entityName}`)
