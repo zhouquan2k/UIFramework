@@ -7,7 +7,7 @@
                     <el-tree :data="tree" :props="treeProps" @node-click="onSelectNode" default-expand-all :expand-on-click-node="false"></el-tree>
                 </el-aside>
                 <el-main>
-                    <component ref="dynamicComponent" :is="dynamicComponent"></component>
+                    <component ref="dynamicComponent" :is="dynamicComponent" v-bind="componentProps"></component>
                 </el-main>
             </el-container>
         </el-container>
@@ -101,6 +101,9 @@ export default {
             treeProps: {
                 children: 'children',
                 label: 'name'
+            },
+            componentProps: {
+                prop_transactionId: '4',
             },
             entity: null,
             selectedNode: null,
