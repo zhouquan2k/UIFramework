@@ -4,7 +4,7 @@
             <el-header height="0">Header</el-header>
             <el-container>
                 <el-aside width="250px" style="height:100%;padding:5px;">
-                    <el-tree :data="tree" :props="treeProps" @node-click="onSelectNode" default-expand-all :expand-on-click-node="false"></el-tree>
+                    <el-tree ref="tree" :data="tree" :props="treeProps" @node-click="onSelectNode" default-expand-all highlight-current :expand-on-click-node="false" node-key="id"></el-tree>
                 </el-aside>
                 <el-main>
                     <component ref="dynamicComponent" :is="dynamicComponent" v-bind="componentProps"></component>
@@ -55,15 +55,18 @@ import UIArtisanApi from '@/tools/UIArtisan.js';
 import DictionarySelect from '@/components/dictionary_select.vue';
 // import PrescriptionComponent from '@gcp/visit/prescription_component.vue';
 
+
 const uiPath = "@gcp/medicine_warehouse/outbound_print.vue";
 export default {
     name: 'UIArtisan',
     watch: {
+        /*
         'visitId': {
             async handler(newVal) {
                 this.initVisitId(newVal);
             },
         },
+        */
     },
     computed: {
         dynamicComponent() {
@@ -103,7 +106,7 @@ export default {
                 label: 'name'
             },
             componentProps: {
-                prop_transactionId: '4',
+                prop_transactionId: '6',
             },
             entity: null,
             selectedNode: null,
@@ -120,11 +123,21 @@ export default {
             customColumns: false,
             selectedColumns: [],
             showPopover: false,
+            nodeById: {},
         }
     },
     methods: {
         async refreshTree() {
+            this.nodeById = {};
             this.tree = [await this.uiArtisanApi.getTree()];
+            // populate nodeById by visit each node of the tree
+            const visitNode = (node) => {
+                this.nodeById[node.id] = node;
+                if (node.children) {
+                    node.children.forEach(visitNode);
+                }
+            }
+            visitNode(this.tree[0]);
         },
         onEdit(property) {
             this.editingProperty = property.name;
@@ -144,6 +157,13 @@ export default {
 
             this.showPopover = false;
             await this.onChange();
+        },
+        onSelectNodeFromUI(id) {
+            var node = this.nodeById[id];
+            if (node) {
+                this.$refs.tree.setCurrentNode(node);
+                this.onSelectNode(node);
+            }
         },
         onSelectNode(node) {
             const element = document.getElementById(node.id);
@@ -168,6 +188,47 @@ export default {
         },
         async onDelete() {
             await this.uiArtisanApi.deleteComponent(this.selectedNode.id);
+        },
+        addMasksToElements() {
+            const elements = document.querySelectorAll('[id]');
+            elements.forEach(el => {
+                var id = el.id;
+                if (!id.startsWith('w')) return;
+                var level = Number(id.substring(1));
+                // 检查是否已经添加了遮罩，避免重复添加
+                if (!el.classList.contains('has-mask')) {
+                // 为每个元素创建一个遮罩层
+                    const mask = document.createElement('div');
+                    Object.assign(mask.style, {
+                        position: 'absolute',
+                        top: '0',
+                        left: '0',
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0)', // 半透明遮罩层
+                        zIndex: '' + level, // 确保遮罩层位于顶层
+                        cursor: 'pointer', // 改变鼠标样式以指示可点击
+                    });
+
+                    // 为遮罩层添加点击事件监听器
+                    mask.addEventListener('click', (event) => {
+                        this.onSelectNodeFromUI(id);
+                        event.stopPropagation(); // 防止事件冒泡到被遮罩的元素
+                    });
+
+                    // 设置元素的position以确保遮罩层能够正确覆盖
+                    const currentPos = window.getComputedStyle(el).position;
+                    if (currentPos === 'static') {
+                        el.style.position = 'relative';
+                    }
+
+                    // 将遮罩层添加到元素中
+                    el.appendChild(mask);
+
+                    // 标记已添加遮罩，避免重复操作
+                    el.classList.add('has-mask');
+                }
+            });
         }
     },
     async mounted() {
@@ -177,12 +238,21 @@ export default {
             types[component.name] = component;
             return types;
         }, {});
-        this.refreshTree();
+        await this.refreshTree();
+        this.$nextTick(() => {
+            this.addMasksToElements();
+        });
     },
 }
 </script>
 
 <style lang="scss" scoped>
+.el-tree ::v-deep {
+    .el-tree-node.is-current .el-tree-node__content {
+        background-color: #67c23a;
+    }
+}
+
 .el-drawer__wrapper ::v-deep {
     .el-drawer__header {
         display: none;
