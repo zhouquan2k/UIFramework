@@ -1,5 +1,5 @@
 <template>
-    <el-tag v-if="tag" :type="$metadata.dictionariesMap[dictName]?.[value]?.tag">{{
+    <el-tag v-if="tag && value" :type="$metadata.dictionariesMap[dictName]?.[value]?.tag">{{
         $metadata.dictionariesMap[dictName]?.[value]?.label
     }}
     </el-tag>

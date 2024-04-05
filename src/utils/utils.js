@@ -238,8 +238,13 @@ export function moneyFormatter(x, y, value) {
   return value ? value.toFixed(2) : '';
 }
 
+// 需要重构，跟tableDateFormatter合并 不能被用在table里
 export function dateFormatter(x, y, value, meta) {
   return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
+}
+
+export function tableDateFormatter(x, y,value, index) {
+  return value?.substring(0, 10);
 }
 
 //TODO is really formatter?
