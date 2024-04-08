@@ -60,7 +60,7 @@
                     <span v-else>{{ safeGet(scope.row, field.name) }}</span>
                 </template>
             </el-table-column>
-            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="200">
+            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="150">
                 <template slot-scope="scope">
                     <el-button :name="`${action.desc}`"
                         v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"

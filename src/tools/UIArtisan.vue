@@ -2,11 +2,14 @@
     <div>
         <el-container style="width:100%;height:100%">
             <el-header height="0">Header</el-header>
-            <el-container>
-                <el-aside width="250px" style="height:100%;padding:5px;">
+            <el-container class="container">
+                <el-aside class="sidebar" width="250">
                     <el-button @click="onExploreData" style="margin: 5px">Data..</el-button>
-                    <el-tree ref="tree" :data="tree" :props="treeProps" @node-click="onSelectNode" default-expand-all
-                        highlight-current :expand-on-click-node="false" node-key="id"></el-tree>
+                    <el-switch v-model="mode" active-text="run" inactive-text="design"></el-switch>
+                    <el-tree ref="tree" :data="tree" :props="treeProps" @node-click="onSelectNode" highlight-current
+                        :expand-on-click-node="false" node-key="id" :default-expanded-keys="expandedNodes"
+                        @node-expand="node => expandedNodes.push(node.id)"
+                        @node-collapse="node => expandedNodes = expandedNodes.filter(id => id != node.id)"></el-tree>
                 </el-aside>
                 <el-main>
                     <component ref="dynamicComponent" :is="dynamicComponent" v-bind="componentProps"></component>
@@ -27,20 +30,22 @@
                         :key="property.name">
                         <template slot="label">{{ property.name }}</template>
                         <div class="property">
-                            <div style="overflow-x:auto;width:130px;white-space: nowrap;margin-right:15px"
-                                v-if="editingProperty != property.name" @dblclick="onEdit(property)">
+                            <div class="display" v-if="editingProperty != property.name" @dblclick="onEdit(property)">
                                 {{ selectedNode.properties?.[property.name] }}</div>
                             <el-input class="no-border property-edit"
                                 v-else-if="['String', 'Integer'].includes(property.type)"
                                 v-model="selectedNode.properties[property.name]"></el-input>
-                            <DictionarySelect class="property-edit" v-else-if="['Boolean'].includes(property.type)"
-                                v-model="selectedNode.properties[property.name]" dictionary="Boolean"
-                                @change="onChange"></DictionarySelect>
+                            <DictionarySelect class="property-edit"
+                                v-else-if="['Boolean', 'AllDictionaries'].includes(property.type)"
+                                v-model="selectedNode.properties[property.name]" :dictionary="property.type"
+                                @change="onChange">
+                            </DictionarySelect>
                             <el-popover v-else-if="['Columns'].includes(property.type)" placement="left"
                                 v-model="showPopover">
                                 <div style="position: relative">
                                     <div style="display:flex">
-                                        <DictionarySelect v-model="entity" dictionary="AllEntities" style="margin:5px;">
+                                        <DictionarySelect v-model="entity" dictionary="AllEntities" style="margin:5px;"
+                                            :multiple="false">
                                         </DictionarySelect>
                                         <el-switch v-model="customColumns" style="margin-top:5px;"
                                             inactive-text="选择列" />
@@ -62,7 +67,7 @@
                                 </div>
                                 <!--el-button slot="reference">编辑</el-button-->
                             </el-popover>
-                            <el-button class="data-edit"
+                            <el-button class="data-edit" v-if="['String'].includes(property.type)"
                                 @click="editingProperty = property.name; dialogVisible = true;">D</el-button>
                         </div>
                     </el-descriptions-item>
@@ -70,11 +75,14 @@
                 <el-button type="primary" native-type="submit" v-show="false" @click.prevent="onChange" />
             </el-form>
         </el-drawer>
-        <el-dialog title="数据浏览" :visible.sync="dialogVisible" width="600px">
+        <el-dialog title="数据浏览" :visible.sync="dialogVisible" width="600px" style="height: 400px">
             <el-autocomplete class="inline-input" v-model="dataName"
                 :fetch-suggestions="(query, callback) => callback([{ value: 'transaction' }, { value: 'returnItems' }])"
                 placeholder="请输入数据变量" highlight-first-item @select="onSelectData"></el-autocomplete>
+            <DictionarySelect style="margin-left: 10px" placeholder="数据字典" dictionary="AllDictionaries" v-model="dictName" @change="onDictionaryChange" :multiple="false"  />
+            <div style="height:400px">
             <el-tree :data="dataTree" :props="treeProps" @node-click="onSelectDataNode" style="margin:10px"></el-tree>
+            </div>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="dialogVisible = false">取 消</el-button>
                 <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
@@ -92,13 +100,16 @@ const uiPath = "@gcp/medicine_warehouse/warehouse_return2.vue";
 export default {
     name: 'UIArtisan',
     watch: {
-        /*
-        'visitId': {
+        'mode': {
             async handler(newVal) {
-                this.initVisitId(newVal);
+                if (newVal) {
+                    this.onSelectNode(null);
+                    this.removeMasks();
+                } else {
+                    this.addMasksToElements();
+                }
             },
         },
-        */
     },
     computed: {
         dynamicComponent() {
@@ -152,6 +163,7 @@ export default {
     components: { DictionarySelect },
     data() {
         return {
+            dictName: null,
             tree: [],
             treeProps: {
                 children: 'children',
@@ -179,6 +191,8 @@ export default {
             dialogVisible: false,
             dataName: null,
             dataTree: [{ name: 'No data available' }],
+            mode: false,
+            expandedNodes: [],
         }
     },
     methods: {
@@ -189,13 +203,18 @@ export default {
             this.nodeById = {};
             this.tree = [await this.uiArtisanApi.getTree()];
             // populate nodeById by visit each node of the tree
-            const visitNode = (node) => {
+            const visitNode = (node, level) => {
+                if (level < 3 && node.id) this.expandedNodes.push(node.id);
                 this.nodeById[node.id] = node;
                 if (node.children) {
-                    node.children.forEach(visitNode);
+                    node.children.forEach(child => visitNode(child, level + 1));
                 }
             }
-            visitNode(this.tree[0]);
+            visitNode(this.tree[0], 0);
+            console.log(this.expandedNodes)
+            setTimeout(() => {
+                this.addMasksToElements();
+            }, 1000);
         },
         onEdit(property) {
             this.editingProperty = property.name;
@@ -227,10 +246,11 @@ export default {
             }
         },
         onSelectNode(node) {
-            const element = document.getElementById(node.id);
             if (this.selectedElement) {
                 this.selectedElement.style.border = this.selectedElementOriginColor;
             }
+            if (!node) return;
+            var element = document.getElementById(node.id);
             this.selectedNode = node;
             this.showProperties = true;
             if (!element) {
@@ -242,32 +262,39 @@ export default {
 
             // this.$refs.dynamicComponent.uiArtisanDesignTime('assignRolesVisible');
         },
-        onSelectData() {
-            const datas = this.$refs.dynamicComponent;
-            if (!datas?.[this.dataName]) return [{ name: 'No data available' }];
-            const convertToTree = (data, parentId) => {
+        convertToTree(data, parentId) {
                 if (Array.isArray(data)) {
                     return data.map((item, idx) => ({
                         id: `${parentId}[${idx}]`,
                         name: `[${idx}] = ${item && typeof item === 'object' ? '...' : item}`,
-                        children: item && typeof item === 'object' ? convertToTree(item, `${parentId}[${idx}]`) : null
+                        children: item && typeof item === 'object' ? this.convertToTree(item, `${parentId}[${idx}]`) : null
                     }));
                 }
                 var props = Object.keys(data);
                 return props.map(prop => ({
                     id: `${parentId}.${prop}`,
                     name: `${prop} = ${data[prop] && typeof data[prop] === 'object' ? '...' : data[prop]}`,
-                    children: data[prop] && typeof data[prop] === 'object' ? convertToTree(data[prop], `${parentId}.${prop}`) : null
+                    children: data[prop] && typeof data[prop] === 'object' ? this.convertToTree(data[prop], `${parentId}.${prop}`) : null
                 }));
-            };
-            this.dataTree = convertToTree(datas[this.dataName], this.dataName);
+            },
+        onSelectData() {
+            const datas = this.$refs.dynamicComponent;
+            if (!datas?.[this.dataName]) return [{ name: 'No data available' }];
+            this.dataTree = this.convertToTree(datas[this.dataName], this.dataName);
         },
         onSelectDataNode(node) {
             if (this.selectedNode)
                 this.selectedNode.properties[this.editingProperty] = node.id;
+            this.copyToClipboard(node.id);
+            this.dialogVisible = false;
+        },
+        onDictionaryChange(value) {
+            this.copyToClipboard(value);
+        },
+        copyToClipboard(text) {
             // copy to clipboard
             if (navigator.clipboard) {
-                navigator.clipboard.writeText(node.id).then(() => {
+                navigator.clipboard.writeText(text).then(() => {
                     console.log('文本已经成功复制到剪切板');
                 })
                     .catch(err => {
@@ -277,15 +304,24 @@ export default {
             else {
                 console.error('无法复制此文本0');
             }
-            this.dialogVisible = false;
         },
         async onCreateChild() {
-            await this.uiArtisanApi.createComponent(this.selectedNode.id, this.newComponentType[0], this.newComponentType[1]);
+            var newId = await this.uiArtisanApi.createComponent(this.selectedNode.id, this.newComponentType[0], this.newComponentType[1]);
             this.newComponentType = [];
-            this.refreshTree();
+            await this.refreshTree();
+            setTimeout(() => {
+                this.onSelectNodeFromUI(newId);
+            }, 1000);
         },
         async onDelete() {
             await this.uiArtisanApi.deleteComponent(this.selectedNode.id);
+            this.refreshTree();
+        },
+        removeMasks() {
+            var elements = document.querySelectorAll('[id^="mask-"]');
+            elements.forEach(function (element) {
+                element.remove();
+            });
         },
         addMasksToElements() {
             const elements = document.querySelectorAll('[id]');
@@ -295,9 +331,10 @@ export default {
                 if (!id.startsWith('w')) return;
                 var level = Number(id.substring(1));
                 // 检查是否已经添加了遮罩，避免重复添加
-                if (!el.classList.contains('has-mask')) {
+                if (true) { //!el.classList.contains('has-mask')
                     // 为每个元素创建一个遮罩层
                     const mask = document.createElement('div');
+                    mask.id = 'mask-' + id;
                     Object.assign(mask.style, {
                         position: 'absolute',
                         top: '0',
@@ -339,15 +376,27 @@ export default {
             return types;
         }, {});
         await this.refreshTree();
-        setTimeout(() => {
-            this.addMasksToElements();
-        }, 500);
     },
 }
 </script>
 
 <style lang="scss" scoped>
 /* 设置按钮紧贴在当前所在父节点的右侧，高度与父节点相同 */
+.container {
+    display: flex;
+    height: 100vh;
+
+    .sidebar {
+        width: 250px;
+        overflow-y: auto;
+        height: 100vh;
+        padding: 5px;
+    }
+
+    .el-main {
+        padding: 5px;
+    }
+}
 
 .property {
     position: relative;
@@ -358,7 +407,27 @@ export default {
     justify-content: center;
     /* 水平居中 */
     align-items: center;
+
+    .property-edit {
+        height: 20px;
+        margin-bottom: 10px;
+
+        ::v-deep .el-input__inner {
+            background-color: #fdf6ec;
+        }
+    }
+
+
     /* 垂直居中 */
+    .display {
+        overflow-x: auto;
+        width: 95px;
+        height: 100%;
+        white-space: nowrap;
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+    }
 
     .data-edit {
         position: absolute;
@@ -398,10 +467,6 @@ export default {
     width: 100%;
 }
 
-.property-edit {
-    height: 20px;
-    margin-bottom: 10px;
-}
 
 .properties ::v-deep {
     .el-descriptions-item__label {

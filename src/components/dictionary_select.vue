@@ -29,6 +29,7 @@ export default {
     },
     methods: {
         onSelect(event) {
+            this.dictionaryData = this.$metadata.dictionaries[this.dictionary];
             this.$emit('change', event)
         },
         filterMethod(val, param) {
@@ -38,7 +39,7 @@ export default {
                         style: pinyin.STYLE_FIRST_LETTER
                     }).join('');
                     // 检查输入的拼音首字母是否匹配 或者 字符匹配
-                    return optionPinyin.indexOf(val.toLowerCase()) === 0 || item.label.indexOf(val) > -1;
+                    return optionPinyin.indexOf(val.toLowerCase()) === 0 || item.label.toLowerCase().indexOf(val.toLowerCase()) > -1;
                 });
             } else {
                 this.dictionaryData = this.$metadata.dictionaries[this.dictionary];
