@@ -24,6 +24,7 @@
                     <el-form-item>
                         <el-button type="primary" plain @click="onSearch">搜索</el-button>
                         <el-button @click="onReset">重置</el-button>
+                        <el-button type="warning" plain @click="onExport">导出</el-button>
                     </el-form-item>
                 </el-form>
             </div>
@@ -34,7 +35,9 @@
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)"
-            :empty-text="emptyText">
+            :empty-text="emptyText"
+            :summary-method="summaryMethod ?? defaultSummaryMethod"
+            :show-summary="showSummary">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" :default-expand-all="false" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
@@ -90,6 +93,7 @@
 import { dateFormatter, safeGet, getManyItemLabel, hasPermission } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
 import DictionaryTag from '@/components/dictionary_tag.vue';
+import * as XLSX from 'xlsx';
 export default {
     name: 'SimpleTable',
     props: {
@@ -107,6 +111,8 @@ export default {
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
         emptyText: { default: () => null },
+        summaryMethod: {default: () => null},
+        showSummary: {default: () => false},
     },
     watch: {
         searchParams: {
@@ -128,6 +134,19 @@ export default {
         };
     },
     methods: {
+        onExport() {
+            // TODO call searchMethod get whole data instead of current page
+            const headers = this.columns.map(col => col.label);
+            const data = this.list.map(row => this.columns.map(col => row[col.name]));
+            // 创建工作簿
+            const wb = XLSX.utils.book_new();
+            // 将数据转换为工作表
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+            // 将工作表添加到工作簿
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            // 导出工作簿（在浏览器环境中会触发下载）
+            XLSX.writeFile(wb, "export.xlsx");
+        },
         hasPermission,
         availableActions(param) {
             return this.actions.filter(action => !action.available || action.available(param));
@@ -160,7 +179,36 @@ export default {
         },
         refreshTable() {
             this.tableUpdateKey++;
+        },
+        defaultSummaryMethod(param) {
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index === 0) {
+                    sums[index] = '记录数：' + data.length;
+                    return;
+                }
+                /* TODO according to column metadata
+                const values = data.map(item => Number(item[column.property]));
+                if (!values.every(value => isNaN(value))) {
+                    sums[index] = values.reduce((prev, curr) => {
+                    const value = Number(curr);
+                    if (!isNaN(value)) {
+                        return prev + curr;
+                    } else {
+                        return prev;
+                    }
+                    }, 0);
+                    // sums[index] += ' 元';
+                } else {
+                    // sums[index] = 'N/A';
+                }
+                */
+            });
+
+            return sums;
         }
+
     },
     created() {
         this.onSearch();
@@ -168,10 +216,12 @@ export default {
 };
 </script>
   
-<style scoped>
+<style lang="scss" scoped>
+/*
 # .el-form-item {
     margin-right: 10px;
 }
+*/
 
 .el-dropdown-link {
     margin-left: 10px;
@@ -183,7 +233,12 @@ export default {
     margin-left: 10px;
     /* margin-right: auto; */
     margin-top: -2px;
-    width: 100%
+    width: 100%;
+    ::v-deep .el-button--small {
+        padding: 9px 12px;
+        margin-right: 8px;
+        margin-left: 0px;
+    }
 }
 
 .search-input {
