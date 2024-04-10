@@ -1,18 +1,28 @@
 <template>
     <div>
         <el-container style="width:100%;height:100%">
-            <el-header height="0">Header</el-header>
+            <el-header height="40" class="header">
+                <div style="font-weight: bold;margin:10px;flex:1">UI Artisan - 
+                    <el-select style="width:200px;margin-left:15px;" v-model="edittingUiIndex" @change="loadUi">
+                        <el-option v-for="(ui, index) in edittingUis" :key="ui.path" :label="ui.path.substring(ui.path.lastIndexOf('/') + 1)"
+                                :value="index"></el-option>
+                    </el-select>
+                </div>
+                <div><el-button @click="onExploreData" style="margin: 5px;flex:1">Data..</el-button></div>
+            </el-header>
             <el-container class="container">
                 <el-aside class="sidebar" width="250">
-                    <el-button @click="onExploreData" style="margin: 5px">Data..</el-button>
-                    <el-switch v-model="mode" active-text="run" inactive-text="design"></el-switch>
+                    <div style="height:40px">
+                        <el-switch style="margin-left:10px;" v-model="mode" active-text="run" inactive-text="design"></el-switch>
+                    </div>
                     <el-tree ref="tree" :data="tree" :props="treeProps" @node-click="onSelectNode" highlight-current
                         :expand-on-click-node="false" node-key="id" :default-expanded-keys="expandedNodes"
+                        :render-after-expand="false"
                         @node-expand="node => expandedNodes.push(node.id)"
                         @node-collapse="node => expandedNodes = expandedNodes.filter(id => id != node.id)"></el-tree>
                 </el-aside>
                 <el-main>
-                    <component ref="dynamicComponent" :is="dynamicComponent" v-bind="componentProps"></component>
+                    <component ref="dynamicComponent" :is="dynamicComponent" :key="dynamicComponentKey" v-bind="edittingUis[edittingUiIndex]?.props"></component>
                 </el-main>
             </el-container>
         </el-container>
@@ -94,9 +104,23 @@
 <script>
 import UIArtisanApi from '@/tools/UIArtisan.js';
 import DictionarySelect from '@/components/dictionary_select.vue';
-// import PrescriptionComponent from '@gcp/visit/prescription_component.vue';
 
-const uiPath = "@gcp/medicine_warehouse/warehouse_return2.vue";
+const edittingUis=[
+    {
+        path: 'medicine_warehouse/warehouse_return2.vue',
+        props: {
+            prop_transactionId: '1',
+        }
+    },
+    {
+        path: 'medicine_warehouse/outbound_print.vue',
+        props: {
+            prop_transactionId: '7',
+        }
+    }
+];
+
+
 export default {
     name: 'UIArtisan',
     watch: {
@@ -112,15 +136,6 @@ export default {
         },
     },
     computed: {
-        dynamicComponent() {
-            // return () => import ('@gcp/project_list.vue');
-            //console.log(`@user/${this.componentPath}`);
-            return (resolve) => require(["@gcp/medicine_warehouse/warehouse_return2.vue"], resolve);
-            // return  (resolve) => require([str], resolve);
-            //return import (`@user/${str}`);
-            // return () => import (this.componentPath);
-
-        },
         componentsByCategory() {
             var currentComponent = this.componentsByType?.[this.selectedNode?.name];
             const categories = this.components.reduce((categories, component) => {
@@ -163,20 +178,18 @@ export default {
     components: { DictionarySelect },
     data() {
         return {
+            edittingUis,
+            edittingUiIndex: 0,
             dictName: null,
             tree: [],
             treeProps: {
                 children: 'children',
                 label: 'name'
             },
-            componentProps: {
-                prop_transactionId: '1',
-            },
             entity: null,
             selectedNode: null,
             selectedElement: null,
             selectedElementOriginColor: null,
-            uiPath,
             uiArtisanApi: null,
             test: null,
             showProperties: false,
@@ -193,6 +206,8 @@ export default {
             dataTree: [{ name: 'No data available' }],
             mode: false,
             expandedNodes: [],
+            dynamicComponentKey: null,
+            dynamicComponent: null,
         }
     },
     methods: {
@@ -246,6 +261,12 @@ export default {
             }
         },
         onSelectNode(node) {
+            var tree = this.$refs.tree;
+            const n = tree.getNode(node.id); // 获取节点
+            if (n) {
+                tree.store.nodesMap[node.id].parent.expand(null, true); // 展开节点
+            }
+
             if (this.selectedElement) {
                 this.selectedElement.style.border = this.selectedElementOriginColor;
             }
@@ -366,21 +387,35 @@ export default {
                     el.classList.add('has-mask');
                 }
             });
+        },
+        async loadUi() {
+            const _uiPath = `@gcp/view/${this.edittingUis[this.edittingUiIndex]?.path}`;
+            this.uiArtisanApi = new UIArtisanApi(_uiPath);
+            this.dynamicComponent = () => import (`@gcp/view/${this.edittingUis[this.edittingUiIndex]?.path}`);
+            this.dynamicComponentKey = _uiPath;
+            await this.refreshTree();
         }
     },
     async mounted() {
-        this.uiArtisanApi = new UIArtisanApi(uiPath);
+        this.uiArtisanApi = new UIArtisanApi();
         this.components = await this.uiArtisanApi.getComponents();
         this.componentsByType = this.components.reduce((types, component) => {
             types[component.name] = component;
             return types;
         }, {});
-        await this.refreshTree();
+        await this.loadUi();
     },
 }
 </script>
 
 <style lang="scss" scoped>
+
+.header {
+    display: flex;
+    background: #eef1f6;
+    height: 40px;
+    align-items: center;
+}
 /* 设置按钮紧贴在当前所在父节点的右侧，高度与父节点相同 */
 .container {
     display: flex;

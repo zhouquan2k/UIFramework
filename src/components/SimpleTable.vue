@@ -90,7 +90,7 @@
 </template>
   
 <script>
-import { dateFormatter, safeGet, getManyItemLabel, hasPermission } from "@/utils/utils";
+import { dateFormatter, safeGet, hasPermission, dictFormatter } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
 import DictionaryTag from '@/components/dictionary_tag.vue';
 import * as XLSX from 'xlsx';
@@ -129,7 +129,7 @@ export default {
             searchForm: {},
             list: [],
 
-            dateFormatter, safeGet, getManyItemLabel,
+            dateFormatter, safeGet,
             tableUpdateKey: 2617,
         };
     },
@@ -137,7 +137,11 @@ export default {
         onExport() {
             // TODO call searchMethod get whole data instead of current page
             const headers = this.columns.map(col => col.label);
-            const data = this.list.map(row => this.columns.map(col => row[col.name]));
+            const data = this.list.map(row => this.columns.map(col => {
+                if (col.type === 'Enum' || col.type === 'Dictionary')
+                    return this.dictFormatter(col.typeName, row[col.name]);
+                return row[col.name];
+            }));
             // 创建工作簿
             const wb = XLSX.utils.book_new();
             // 将数据转换为工作表

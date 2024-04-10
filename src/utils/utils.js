@@ -252,8 +252,8 @@ export function booleanFormatter(value) {
   return value ? "是" : "否";
 }
 
-export function dictFormatter(type, value) {
-  return this.dictionariesMap[type][value];
+Vue.prototype.dictFormatter = function (type, value) {
+  return this.$metadata.dictionariesMap[type][value]?.label;
 }
 
 export function startTime(d, days = 0) {
