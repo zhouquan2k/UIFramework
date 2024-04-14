@@ -50,7 +50,18 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   });
 }
 
-
+Vue.prototype.addRules = function (entityName, fieldDefs) {
+  const entityMetadata = this.$metadata.entitiesMap[entityName];
+  check(entityMetadata != null, `can't find entity: ${entityName}`)
+  if (fieldDefs == 'detail')
+    fieldDefs = entityMetadata.fields;
+  
+  fieldDefs.forEach(field => {
+    const fieldDef = Object.assign({}, entityMetadata.fieldMap[field.name], field);
+    if (!fieldDef.nullable && !fieldDef.hidden) _addRule(this, fieldDef.name, { required: true, message: `请输入'${fieldDef.label}'`, trigger: 'blur' });
+  }); 
+  console.log(this.rules);
+}
 
 // TODO param apis not used
 export function initMetadata(object, apis, name) {
