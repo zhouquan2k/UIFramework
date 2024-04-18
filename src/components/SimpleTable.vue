@@ -36,6 +36,8 @@
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)"
             :empty-text="emptyText"
+            :highlight-current-row="true"
+            @current-change="row => $emit('current-change', row)"
             :summary-method="summaryMethod ?? defaultSummaryMethod"
             :show-summary="showSummary">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" :default-expand-all="false" />
@@ -51,7 +53,7 @@
                         <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
                     </template>
                     <DictionaryTag v-else-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
-                        :value="scope.row[field.name]" :dictName="field.typeName" />
+                        :value="scope.row[field.name]" :dictName="field.typeName" tag />
                     <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
                         {{ field.refData && field.refData.startsWith('dictionary:') ?
                             dictionariesMap[field.refData.substring(11)]?.[scope.row[field.name]]?.label :
