@@ -173,9 +173,18 @@ export default {
             for (const key in this.searchParams) {
                 if (this.searchParams[key] === "") delete this.searchParams[key];
             }
+            const flatten = (obj) => {
+                const res = {};
+                for (const key in obj) {
+                    const pos = key.lastIndexOf('.');
+                    res[pos < 0 ? key : key.substring(pos + 1)] = obj[key];
+                }
+                return res;
+            };
             console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParams));
-            if (this.searchMethod)
-                this.list = await this.searchMethod({...this.searchForm, ...this.searchParams, ...this.fixedSearchParams});
+            if (this.searchMethod) {
+                this.list = await this.searchMethod({...flatten(this.searchForm), ...flatten(this.searchParams), ...flatten(this.fixedSearchParams)});
+            }
         },
         handleSelectionChange(data) {
             this.$emit('selection-change', data);
@@ -237,6 +246,7 @@ export default {
 
 .search-form {
     margin-left: 10px;
+    display: flex;
     /* margin-right: auto; */
     margin-top: -2px;
     width: 100%;

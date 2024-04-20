@@ -26,6 +26,13 @@ export function check(condition, message) {
 export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
+const getFieldDef = (entity, fieldName, metadata) => {
+  const pos = fieldName.indexOf('.');
+  if (pos < 0) return entity.fieldMap[fieldName]; 
+  const subEntity = metadata.entitiesMap[entity.fieldMap[fieldName.substring(0, pos)].typeName];
+  return getFieldDef(subEntity, fieldName.substring(pos + 1), metadata);
+}
+
 // 2nd parameter: fieldNames/field object array, or 'listable', 'searchable'
 Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   const entityMetadata = this.$metadata.entitiesMap[entityName];
@@ -35,20 +42,12 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   else if (fieldNames == 'searchable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.searchable);
   return fieldNames.map(fieldName => {
-    if (typeof fieldName === "object") return fieldName;
-    let entity = this.$metadata.entitiesMap[entityName];
-    if (fieldName.indexOf('.') < 0) return entity.fieldMap[fieldName];
-    // field from sub entity
-    const propertyName = fieldName.split('.')[0];
-    const subPropertyName = fieldName.split('.')[1];
-    const objField = entity.fieldMap[propertyName];
-    // TODO 递归
-    const subEntityName = objField.typeName;
-    const subEntity = this.$metadata.entitiesMap[subEntityName];
-    const field = subEntity.fieldMap[subPropertyName];
-    return { ...field, name: `${propertyName}.${field.name}` };
+    if (typeof fieldName === "object") return fieldName; // 自定义的field对象
+    const fieldDef = getFieldDef(entityMetadata, fieldName, this.$metadata);
+    return { ...fieldDef, name: fieldName};
   });
 }
+
 
 Vue.prototype.addRules = function (entityName, fieldDefs) {
   const entityMetadata = this.$metadata.entitiesMap[entityName];
@@ -136,7 +135,7 @@ const mappingId = (idField, result) => {
 
 import Element from 'element-ui';
 function emptyIfNull(x) {
-  return x ? '<br/><br/>' + x : '';
+  return x ? '<br/>' + x : '';
 }
 
 export function globalErrorHandler(err, vm, info) {
@@ -173,7 +172,8 @@ export function globalErrorHandler(err, vm, info) {
   else {
     Element.Message({
       dangerouslyUseHTMLString: true,
-      message: `${err.name == 'AxiosError' ? '后端异常:' : err.name} ${err.code} - ${err.message}  ${emptyIfNull(err?.response?.data.errCode)} ${emptyIfNull(err?.response?.data.message)}`.replace(/\n/g, '<br/><br/>'),
+      message: `<span style="font-weight:bold">${err.name == 'AxiosError' ? `后端异常:   ${err.config?.url}` : err.name}</span> \n\n ${err.code ?? ''} - ${err.message ?? ''} \n\n  ${
+        (err?.response?.data.errCode ?? '-')} \n`.replace(/\n/g, '<br/>'),
       type: 'error',
       duration: 0,
       showClose: true,
