@@ -2,6 +2,11 @@ import _request from '@/utils/request'
 import store from '@/store'
 import { getAccessToken } from '@/utils/auth'
 
+
+export function isValid(value) {
+  return value !== null && value !== undefined;
+}
+
 // 也可以使用lodash _.get(project,'a.b')， 已放入vue
 
 export function safeGet(o, path) {

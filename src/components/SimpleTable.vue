@@ -52,11 +52,11 @@
                     <template v-if="$scopedSlots[`columns-${field.name}`]">
                         <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
                     </template>
-                    <DictionaryTag v-else-if="['Enum', 'Dictionary'].includes(field.type) && scope.row[field.name]"
-                        :value="scope.row[field.name]" :dictName="field.typeName" tag />
-                    <span v-else-if="['RefID'].includes(field.type) && scope.row[field.name]">
+                    <DictionaryTag v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
+                        :value="safeGet(scope.row, field.name)" :dictName="field.typeName" tag />
+                    <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
                         {{ field.refData && field.refData.startsWith('dictionary:') ?
-                            dictionariesMap[field.refData.substring(11)]?.[scope.row[field.name]]?.label :
+                            dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label :
                             safeGet(scope.row,
                                 field.refData) }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
@@ -92,7 +92,7 @@
 </template>
   
 <script>
-import { dateFormatter, safeGet, hasPermission, dictFormatter } from "@/utils/utils";
+import { dateFormatter, safeGet, hasPermission, dictFormatter, isValid } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
 import DictionaryTag from '@/components/dictionary_tag.vue';
 import * as XLSX from 'xlsx';
@@ -131,11 +131,12 @@ export default {
             searchForm: {},
             list: [],
 
-            dateFormatter, safeGet,
+            dateFormatter,
             tableUpdateKey: 2617,
         };
     },
     methods: {
+        isValid, safeGet,
         onExport() {
             // TODO call searchMethod get whole data instead of current page
             const headers = this.columns.map(col => col.label);
