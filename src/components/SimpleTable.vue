@@ -34,13 +34,10 @@
 
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
-            :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)"
-            :empty-text="emptyText"
-            :highlight-current-row="true"
-            @current-change="row => $emit('current-change', row)"
-            :summary-method="summaryMethod ?? defaultSummaryMethod"
-            :show-summary="showSummary">
-            <el-table-column v-if="checkboxVisible" type="selection" width="55" :default-expand-all="false" />
+            :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
+            :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
+            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary">
+            <el-table-column v-if="checkboxVisible" type="selection" width="55" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
                     <slot name="expand" :data="scope.row" />
@@ -52,16 +49,18 @@
                     <template v-if="$scopedSlots[`columns-${field.name}`]">
                         <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
                     </template>
-                    <DictionaryTag v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
+                    <DictionaryTag
+                        v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
                         :value="safeGet(scope.row, field.name)" :dictName="field.typeName" tag />
                     <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
                         {{ field.refData && field.refData.startsWith('dictionary:') ?
-                            dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label :
-                            safeGet(scope.row,
-                                field.refData) }}</span>
+            $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
+            :
+            safeGet(scope.row,
+                field.refData) }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
-                        safeGet(scope.row, field.name), field)
-                    }}</span>
+            safeGet(scope.row, field.name), field)
+                        }}</span>
                     <span v-else>{{ safeGet(scope.row, field.name) }}</span>
                 </template>
             </el-table-column>
@@ -69,8 +68,8 @@
                 <template slot-scope="scope">
                     <el-button :name="`${action.desc}`"
                         v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"
-                        :key="`button-${action.event}`" v-if="!action.available || action.available(scope.row)" type="text"
-                        :style="action.style" @click="callMethod(action.event, scope.row)">{{ action.desc
+                        :key="`button-${action.event}`" v-if="!action.available || action.available(scope.row)"
+                        type="text" :style="action.style" @click="callMethod(action.event, scope.row)">{{ action.desc
                         }}</el-button>
                     <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
                         @command="command => callMethod(command, scope.row)">
@@ -79,10 +78,10 @@
                         </span>
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
-                                :command="action.event" v-if="!action.available || action.available(scope.row)" size="mini"
-                                type="text" :icon="action.icon" :key="action.name">{{
-                                    action.desc
-                                }}</el-dropdown-item>
+                                :command="action.event" v-if="!action.available || action.available(scope.row)"
+                                size="mini" type="text" :icon="action.icon" :key="action.name">{{
+            action.desc
+        }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
                 </template>
@@ -90,7 +89,7 @@
         </el-table>
     </div>
 </template>
-  
+
 <script>
 import { dateFormatter, safeGet, hasPermission, dictFormatter, isValid } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
@@ -113,8 +112,8 @@ export default {
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
         emptyText: { default: () => null },
-        summaryMethod: {default: () => null},
-        showSummary: {default: () => false},
+        summaryMethod: { default: () => null },
+        showSummary: { default: () => false },
     },
     watch: {
         searchParams: {
@@ -184,7 +183,7 @@ export default {
             };
             console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParams));
             if (this.searchMethod) {
-                this.list = await this.searchMethod({...flatten(this.searchForm), ...flatten(this.searchParams), ...flatten(this.fixedSearchParams)});
+                this.list = await this.searchMethod({ ...flatten(this.searchForm), ...flatten(this.searchParams), ...flatten(this.fixedSearchParams) });
             }
         },
         handleSelectionChange(data) {
@@ -231,7 +230,7 @@ export default {
     }
 };
 </script>
-  
+
 <style lang="scss" scoped>
 /*
 # .el-form-item {
@@ -251,6 +250,7 @@ export default {
     /* margin-right: auto; */
     margin-top: -2px;
     width: 100%;
+
     ::v-deep .el-button--small {
         padding: 9px 12px;
         margin-right: 8px;
@@ -277,4 +277,3 @@ export default {
     margin-bottom: 3px;
 }
 </style>
-  
