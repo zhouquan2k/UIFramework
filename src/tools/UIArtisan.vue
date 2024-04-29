@@ -2,10 +2,10 @@
     <div>
         <el-container style="width:100%;height:100%">
             <el-header height="40" class="header">
-                <div style="font-weight: bold;margin:10px;flex:1">UI Artisan - 
+                <div style="font-weight: bold;margin:10px;flex:1">UI Artisan -
                     <el-select style="width:200px;margin-left:15px;" v-model="edittingUiIndex" @change="loadUi">
-                        <el-option v-for="(ui, index) in edittingUis" :key="ui.path" :label="ui.path.substring(ui.path.lastIndexOf('/') + 1)"
-                                :value="index"></el-option>
+                        <el-option v-for="(ui, index) in edittingUis" :key="ui.path"
+                            :label="ui.path.substring(ui.path.lastIndexOf('/') + 1)" :value="index"></el-option>
                     </el-select>
                 </div>
                 <div><el-button @click="onExploreData" style="margin: 5px;flex:1">Data..</el-button></div>
@@ -13,16 +13,17 @@
             <el-container class="container">
                 <el-aside class="sidebar" width="250">
                     <div style="height:40px">
-                        <el-switch style="margin-left:10px;" v-model="mode" active-text="run" inactive-text="design"></el-switch>
+                        <el-switch style="margin-left:10px;" v-model="mode" active-text="run"
+                            inactive-text="design"></el-switch>
                     </div>
                     <el-tree ref="tree" :data="tree" :props="treeProps" @node-click="onSelectNode" highlight-current
                         :expand-on-click-node="false" node-key="id" :default-expanded-keys="expandedNodes"
-                        :render-after-expand="false"
-                        @node-expand="node => expandedNodes.push(node.id)"
+                        :render-after-expand="false" @node-expand="node => expandedNodes.push(node.id)"
                         @node-collapse="node => expandedNodes = expandedNodes.filter(id => id != node.id)"></el-tree>
                 </el-aside>
                 <el-main>
-                    <component ref="dynamicComponent" :is="dynamicComponent" :key="dynamicComponentKey" v-bind="edittingUis[edittingUiIndex]?.props"></component>
+                    <component ref="dynamicComponent" :is="dynamicComponent" :key="dynamicComponentKey"
+                        v-bind="edittingUis[edittingUiIndex]?.props"></component>
                 </el-main>
             </el-container>
         </el-container>
@@ -89,9 +90,13 @@
             <el-autocomplete class="inline-input" v-model="dataName"
                 :fetch-suggestions="(query, callback) => callback([{ value: 'transaction' }, { value: 'returnItems' }])"
                 placeholder="请输入数据变量" highlight-first-item @select="onSelectData"></el-autocomplete>
-            <DictionarySelect style="margin-left: 10px" placeholder="数据字典" dictionary="AllDictionaries" v-model="dictName" @change="onDictionaryChange" :multiple="false"  />
+            <DictionarySelect style="margin-left: 10px" placeholder="Dictionaries" dictionary="AllDictionaries"
+                v-model="dictName" @change="onDictionaryChange" :multiple="false" />
+            <DictionarySelect placeholder="Entities" dictionary="AllEntities" v-model="entityName"
+                @change="onEntityChange" :multiple="false" />
             <div style="height:400px">
-            <el-tree :data="dataTree" :props="treeProps" @node-click="onSelectDataNode" style="margin:10px"></el-tree>
+                <el-tree :data="dataTree" :props="treeProps" @node-click="onSelectDataNode"
+                    style="margin:10px"></el-tree>
             </div>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="dialogVisible = false">取 消</el-button>
@@ -105,7 +110,13 @@
 import UIArtisanApi from '@/tools/UIArtisan.js';
 import DictionarySelect from '@/components/dictionary_select.vue';
 
-const edittingUis=[
+const edittingUis = [
+    {
+        path: 'medicine_warehouse/prescription_item_search.vue',
+        props: {
+            prop_medicine: { medicineId: '1322' },
+        }
+    },
     {
         path: 'medicine_warehouse/warehouse_return2.vue',
         props: {
@@ -187,6 +198,7 @@ export default {
                 label: 'name'
             },
             entity: null,
+            entityName: null,
             selectedNode: null,
             selectedElement: null,
             selectedElementOriginColor: null,
@@ -284,20 +296,20 @@ export default {
             // this.$refs.dynamicComponent.uiArtisanDesignTime('assignRolesVisible');
         },
         convertToTree(data, parentId) {
-                if (Array.isArray(data)) {
-                    return data.map((item, idx) => ({
-                        id: `${parentId}[${idx}]`,
-                        name: `[${idx}] = ${item && typeof item === 'object' ? '...' : item}`,
-                        children: item && typeof item === 'object' ? this.convertToTree(item, `${parentId}[${idx}]`) : null
-                    }));
-                }
-                var props = Object.keys(data);
-                return props.map(prop => ({
-                    id: `${parentId}.${prop}`,
-                    name: `${prop} = ${data[prop] && typeof data[prop] === 'object' ? '...' : data[prop]}`,
-                    children: data[prop] && typeof data[prop] === 'object' ? this.convertToTree(data[prop], `${parentId}.${prop}`) : null
+            if (Array.isArray(data)) {
+                return data.map((item, idx) => ({
+                    id: `${parentId}[${idx}]`,
+                    name: `[${idx}] = ${item && typeof item === 'object' ? '...' : item}`,
+                    children: item && typeof item === 'object' ? this.convertToTree(item, `${parentId}[${idx}]`) : null
                 }));
-            },
+            }
+            var props = Object.keys(data);
+            return props.map(prop => ({
+                id: `${parentId}.${prop}`,
+                name: `${prop} = ${data[prop] && typeof data[prop] === 'object' ? '...' : data[prop]}`,
+                children: data[prop] && typeof data[prop] === 'object' ? this.convertToTree(data[prop], `${parentId}.${prop}`) : null
+            }));
+        },
         onSelectData() {
             const datas = this.$refs.dynamicComponent;
             if (!datas?.[this.dataName]) return [{ name: 'No data available' }];
@@ -311,6 +323,9 @@ export default {
         },
         onDictionaryChange(value) {
             this.copyToClipboard(value);
+        },
+        onEntityChange(value) {
+            this.entity = value;
         },
         copyToClipboard(text) {
             // copy to clipboard
@@ -391,7 +406,7 @@ export default {
         async loadUi() {
             const _uiPath = `@gcp/view/${this.edittingUis[this.edittingUiIndex]?.path}`;
             this.uiArtisanApi = new UIArtisanApi(_uiPath);
-            this.dynamicComponent = () => import (`@gcp/view/${this.edittingUis[this.edittingUiIndex]?.path}`);
+            this.dynamicComponent = () => import(`@gcp/view/${this.edittingUis[this.edittingUiIndex]?.path}`);
             this.dynamicComponentKey = _uiPath;
             await this.refreshTree();
         }
@@ -409,13 +424,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
 .header {
     display: flex;
     background: #eef1f6;
     height: 40px;
     align-items: center;
 }
+
 /* 设置按钮紧贴在当前所在父节点的右侧，高度与父节点相同 */
 .container {
     display: flex;

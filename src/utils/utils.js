@@ -33,8 +33,11 @@ export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 const getFieldDef = (entity, fieldName, metadata) => {
   const pos = fieldName.indexOf('.');
-  if (pos < 0) return entity.fieldMap[fieldName]; 
-  const subEntity = metadata.entitiesMap[entity.fieldMap[fieldName.substring(0, pos)].typeName];
+  if (pos < 0) return entity.fieldMap[fieldName];
+  const fieldPart = fieldName.substring(0, pos);
+  const field = entity.fieldMap[fieldPart];
+  if (!field) throw new Error(`can't find field: ${fieldPart} in ${entity.name}`);
+  const subEntity = metadata.entitiesMap[field.typeName];
   return getFieldDef(subEntity, fieldName.substring(pos + 1), metadata);
 }
 
@@ -49,7 +52,7 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   return fieldNames.map(fieldName => {
     if (typeof fieldName === "object") return fieldName; // 自定义的field对象
     const fieldDef = getFieldDef(entityMetadata, fieldName, this.$metadata);
-    return { ...fieldDef, name: fieldName};
+    return { ...fieldDef, name: fieldName };
   });
 }
 
@@ -59,11 +62,11 @@ Vue.prototype.addRules = function (entityName, fieldDefs) {
   check(entityMetadata != null, `can't find entity: ${entityName}`)
   if (fieldDefs == 'detail')
     fieldDefs = entityMetadata.fields;
-  
+
   fieldDefs.forEach(field => {
     const fieldDef = Object.assign({}, entityMetadata.fieldMap[field.name], field);
     if (!fieldDef.nullable && !fieldDef.hidden) _addRule(this, fieldDef.name, { required: true, message: `请输入'${fieldDef.label}'`, trigger: 'blur' });
-  }); 
+  });
   console.log(this.rules);
 }
 
@@ -177,8 +180,7 @@ export function globalErrorHandler(err, vm, info) {
   else {
     Element.Message({
       dangerouslyUseHTMLString: true,
-      message: `<span style="font-weight:bold">${err.name == 'AxiosError' ? `后端异常:   ${err.config?.url}` : err.name}</span> \n\n ${err.code ?? ''} - ${err.message ?? ''} \n\n  ${
-        (err?.response?.data.errCode ?? '-')} \n`.replace(/\n/g, '<br/>'),
+      message: `<span style="font-weight:bold">${err.name == 'AxiosError' ? `后端异常:   ${err.config?.url}` : err.name}</span> \n\n ${err.code ?? ''} - ${err.message ?? ''} \n\n  ${(err?.response?.data.errCode ?? '-')} \n`.replace(/\n/g, '<br/>'),
       type: 'error',
       duration: 0,
       showClose: true,
@@ -259,7 +261,7 @@ export function dateFormatter(x, y, value, meta) {
   return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
 }
 
-export function tableDateFormatter(x, y,value, index) {
+export function tableDateFormatter(x, y, value, index) {
   return value?.substring(0, 10);
 }
 

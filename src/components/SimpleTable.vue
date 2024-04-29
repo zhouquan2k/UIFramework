@@ -24,7 +24,7 @@
                     <el-form-item>
                         <el-button type="primary" plain @click="onSearch">搜索</el-button>
                         <el-button @click="onReset">重置</el-button>
-                        <el-button type="warning" plain @click="onExport">导出</el-button>
+                        <el-button v-if="exportVisible" type="warning" plain @click="onExport">导出</el-button>
                     </el-form-item>
                 </el-form>
             </div>
@@ -109,6 +109,7 @@ export default {
         toolbarVisible: { type: Boolean, default: () => true },
         searchVisible: { type: Boolean, default: () => false },
         checkboxVisible: { type: Boolean, default: () => false },
+        exportVisible: { type: Boolean, default: () => false },
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
         emptyText: { default: () => null },
@@ -225,7 +226,7 @@ export default {
         }
 
     },
-    created() {
+    mounted() {
         this.onSearch();
     }
 };
