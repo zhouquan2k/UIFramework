@@ -7,7 +7,7 @@
                 <el-form v-show="searchVisible && searches?.length > 0" inline class="search-form" v-model="searchForm">
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
                     <el-form-item v-for="field in searches" :key="field.name"
-                        v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary'].includes(field.type) && !searchParams[field.name]">
+                        v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Date', 'Timestamp'].includes(field.type) && !searchParams[field.name]">
                         <template v-if="$scopedSlots[`searches-${field.name}`]">
                             <slot :name="`searches-${field.name}`"></slot>
                         </template>
@@ -17,6 +17,11 @@
                             class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch"></el-input>
                         <el-input v-model="searchForm[field.name]" v-else-if="['String'].includes(field.type)"
                             :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
+                        <el-date-picker v-model="searchForm[field.name]" :value-format="globalDateFormat"
+                            v-else-if="['Date', 'Timestamp'].includes(field.type)" class="search-input"
+                            :placeholder="field.label" type="daterange" @change="onSearch" range-separator="-"
+                            start-placeholder="开始" :end-placeholder="`结束${field.label}`">
+                        </el-date-picker>
                         <DictionarySelect :theClass="field.name" v-model="searchForm[field.name]"
                             :dictionary="field.typeName" v-else-if="['Enum', 'Dictionary'].includes(field.type)"
                             :placeholder="field.label" :clearable="true" :multiple="true" />
@@ -80,8 +85,8 @@
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
                                 :command="action.event" v-if="!action.available || action.available(scope.row)"
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
-            action.desc
-        }}</el-dropdown-item>
+                                action.desc
+                                }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
                 </template>
@@ -91,7 +96,7 @@
 </template>
 
 <script>
-import { dateFormatter, safeGet, hasPermission, dictFormatter, isValid } from "@/utils/utils";
+import { dateFormatter, safeGet, hasPermission, globalDateFormat, isValid } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
 import DictionaryTag from '@/components/dictionary_tag.vue';
 import * as XLSX from 'xlsx';
@@ -128,6 +133,7 @@ export default {
     components: { DictionarySelect, DictionaryTag },
     data() {
         return {
+            globalDateFormat,
             searchForm: {},
             list: [],
 
@@ -268,6 +274,12 @@ export default {
 .search-input>>>.el-input--small .el-input__inner {
     height: 28px;
     line-height: 28px;
+}
+
+.search-form .el-range-editor {
+    height: 31px;
+    width: 220px;
+    margin-top: 1px;
 }
 
 .grid-toolbar {
