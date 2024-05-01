@@ -7,7 +7,7 @@
                 <el-form v-show="searchVisible && searches?.length > 0" inline class="search-form" v-model="searchForm">
                     <!-- 可以根据searches 里面的成员看哪些是已经定制显示了的，从而不再绘制-->
                     <el-form-item v-for="field in searches" :key="field.name"
-                        v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Date', 'Timestamp'].includes(field.type) && !searchParams[field.name]">
+                        v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Date', 'Timestamp'].includes(field.type) && !fixedSearchParams[field.name]">
                         <template v-if="$scopedSlots[`searches-${field.name}`]">
                             <slot :name="`searches-${field.name}`"></slot>
                         </template>
@@ -24,7 +24,7 @@
                         </el-date-picker>
                         <DictionarySelect :theClass="field.name" v-model="searchForm[field.name]"
                             :dictionary="field.typeName" v-else-if="['Enum', 'Dictionary'].includes(field.type)"
-                            :placeholder="field.label" :clearable="true" :multiple="true" />
+                            :placeholder="field.label" :clearable="true" :multiple="true" :collapseTags="true" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" plain @click="onSearch">搜索</el-button>
@@ -109,7 +109,7 @@ export default {
         actions: { type: Array, default: () => ([]) },
         buttons: { type: Array, default: () => ([]) },
         searches: { type: Array, default: () => ([]) },
-        searchParams: { type: Object, default: () => ({}) },
+        searchParams: { type: Object, default: () => ({}) }, // searchForm的初值，可变
         fixedSearchParams: { type: Object, default: () => ({}) },
         toolbarVisible: { type: Boolean, default: () => true },
         searchVisible: { type: Boolean, default: () => false },
@@ -122,7 +122,7 @@ export default {
         showSummary: { default: () => false },
     },
     watch: {
-        searchParams: {
+        fixedSearchParams: {
             handler(newVal) {
                 //if (this.autoSearch)
                 this.onSearch();
@@ -134,8 +134,8 @@ export default {
     data() {
         return {
             globalDateFormat,
-            searchForm: {},
             list: [],
+            searchForm: {},
 
             dateFormatter,
             tableUpdateKey: 2617,
@@ -169,7 +169,7 @@ export default {
             this.$emit(event, row);
         },
         onReset() {
-            this.searchForm = {};
+            this.searchForm = { ...this.searchParams };
             this.$emit('reset');
             this.onSearch();
         },
@@ -188,9 +188,9 @@ export default {
                 }
                 return res;
             };
-            console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.searchParams));
+            console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.fixedSearchParams));
             if (this.searchMethod) {
-                this.list = await this.searchMethod({ ...flatten(this.searchForm), ...flatten(this.searchParams), ...flatten(this.fixedSearchParams) });
+                this.list = await this.searchMethod({ ...flatten(this.searchForm), ...flatten(this.fixedSearchParams) });
             }
         },
         handleSelectionChange(data) {
@@ -233,6 +233,7 @@ export default {
 
     },
     mounted() {
+        this.searchForm = { ...this.searchParams };
         this.onSearch();
     }
 };
@@ -276,10 +277,16 @@ export default {
     line-height: 28px;
 }
 
-.search-form .el-range-editor {
-    height: 31px;
-    width: 220px;
-    margin-top: 1px;
+.search-form {
+    .el-range-editor {
+        height: 31px;
+        width: 220px;
+        margin-top: 1px;
+    }
+
+    .el-select {
+        width: 140px;
+    }
 }
 
 .grid-toolbar {

@@ -44,7 +44,7 @@ const getFieldDef = (entity, fieldName, metadata) => {
 // 2nd parameter: fieldNames/field object array, or 'listable', 'searchable'
 Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   const entityMetadata = this.$metadata.entitiesMap[entityName];
-  check(entityMetadata != null, `can't find entity: ${entityName}`)
+  check(entityMetadata != null, `can't find entity: ${entityName}`);
   if (fieldNames == 'listable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.listable);
   else if (fieldNames == 'searchable')
@@ -55,7 +55,6 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
     return { ...fieldDef, name: fieldName };
   });
 }
-
 
 Vue.prototype.addRules = function (entityName, fieldDefs) {
   const entityMetadata = this.$metadata.entitiesMap[entityName];
