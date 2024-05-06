@@ -86,6 +86,19 @@
                 <el-button type="primary" native-type="submit" v-show="false" @click.prevent="onChange" />
             </el-form>
         </el-drawer>
+        <el-dialog title="Entity Wizard" :visible.sync="entityWizardDialog" width="600" height="600">
+            <DictionarySelect placeholder="Entities" dictionary="AllEntities" v-model="entityName"
+                @change="onEntityChange" :multiple="false" />
+            <div style="height:500px; overflow-y: auto;">
+                <el-tree show-checkbox ref="entityWizardEntityTree" :data="dataTree" :props="treeProps"
+                    @node-click="onSelectDataNode" style="margin:10px">
+                </el-tree>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="entityWizardDialog = false">取 消</el-button>
+                <el-button type="primary" @click="onEntityWizard">确 定</el-button>
+            </span>
+        </el-dialog>
         <el-dialog title="数据浏览" :visible.sync="dialogVisible" width="600px" style="height: 400px">
             <el-autocomplete class="inline-input" v-model="dataName"
                 :fetch-suggestions="(query, callback) => callback([{ value: 'transaction' }, { value: 'returnItems' }])"
@@ -111,6 +124,11 @@ import UIArtisanApi from '@/tools/UIArtisan.js';
 import DictionarySelect from '@/components/dictionary_select.vue';
 
 const edittingUis = [
+    {
+        path: 'test.vue',
+        props: {
+        }
+    },
     {
         path: 'medicine_warehouse/prescription_item_search.vue',
         props: {
@@ -162,6 +180,11 @@ export default {
             }, {});
             if (currentComponent?.slots?.length > 0)
                 categories['slots'] = { label: 'Slots', value: 'slots', children: currentComponent?.slots?.map(slot => ({ label: slot, value: slot })) ?? [] };
+            categories['entities'] = {
+                label: 'Entities',
+                value: 'entities',
+                children: [{ label: 'Wizard', value: 'wizard' }]
+            }
             return Object.values(categories);
         },
         /*
@@ -214,12 +237,14 @@ export default {
             showPopover: false,
             nodeById: {},
             dialogVisible: false,
+            entityWizardDialog: false,
             dataName: null,
             dataTree: [{ name: 'No data available' }],
             mode: false,
             expandedNodes: [],
             dynamicComponentKey: null,
             dynamicComponent: null,
+            selectedEntity: null,
         }
     },
     methods: {
@@ -274,7 +299,7 @@ export default {
         },
         onSelectNode(node) {
             var tree = this.$refs.tree;
-            const n = tree.getNode(node.id); // 获取节点
+            const n = tree.getNode(node?.id); // 获取节点
             if (n) {
                 tree.store.nodesMap[node.id].parent.expand(null, true); // 展开节点
             }
@@ -294,6 +319,14 @@ export default {
             element.style.border = "2px dashed #e6a23c";
 
             // this.$refs.dynamicComponent.uiArtisanDesignTime('assignRolesVisible');
+        },
+        entityToTree(entity, parentId, depth) {
+            var props = entity.fields;
+            return props.map(prop => ({
+                id: `${parentId ? parentId + '.' : ''}${prop.name}`,
+                name: `${prop.name} = ${prop.label}`,
+                children: prop.type == 'None' && !prop.fullTypeName.startsWith('java.') && depth < 5 && this.$metadata.entitiesMap[prop.typeName] ? this.entityToTree(this.$metadata.entitiesMap[prop.typeName], `${parentId ? parentId + '.' : ''}${prop.name}`, depth + 1) : null
+            }));
         },
         convertToTree(data, parentId) {
             if (Array.isArray(data)) {
@@ -324,8 +357,10 @@ export default {
         onDictionaryChange(value) {
             this.copyToClipboard(value);
         },
-        onEntityChange(value) {
-            this.entity = value;
+        onEntityChange(entityName) {
+            this.selectedEntity = this.$metadata.entitiesMap[entityName];
+            // TODO 支持级联属性的选择
+            this.dataTree = this.entityToTree(this.selectedEntity, null, 0);
         },
         copyToClipboard(text) {
             // copy to clipboard
@@ -342,12 +377,29 @@ export default {
             }
         },
         async onCreateChild() {
-            var newId = await this.uiArtisanApi.createComponent(this.selectedNode.id, this.newComponentType[0], this.newComponentType[1]);
+            var category = this.newComponentType[0];
+            var widget = this.newComponentType[1];
+            if (category == 'entities') {
+                this.entityWizardDialog = true;
+                return;
+            }
+            var newId = await this.uiArtisanApi.createComponent(this.selectedNode.id, category, widget);
             this.newComponentType = [];
             await this.refreshTree();
             setTimeout(() => {
                 this.onSelectNodeFromUI(newId);
             }, 1000);
+        },
+        async onEntityWizard() {
+            this.entityWizardDialog = false;
+            this.newComponentType = [];
+            const checked = this.$refs.entityWizardEntityTree.getCheckedNodes();
+            for (const node of checked) {
+                // const meta = this.selectedEntity.fields.find(field => field.name == node.id);
+                const meta = this.selectedEntity.name + "." + node.id;
+                await this.uiArtisanApi.createComponent(this.selectedNode.id, '?', 'el-table-column', meta);
+            };
+            this.refreshTree();
         },
         async onDelete() {
             await this.uiArtisanApi.deleteComponent(this.selectedNode.id);

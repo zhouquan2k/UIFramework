@@ -8,7 +8,7 @@ import { request } from '@/utils/utils';
 export default class UIArtisanApi {
     constructor(uiPath) {
         this.baseUrl = '/api/ui-artisan';
-        this.baseUiUrl=`${this.baseUrl}/${uiPath ? uiPath.replace(/\//g, '|') : ''}`;
+        this.baseUiUrl = `${this.baseUrl}/${uiPath ? uiPath.replace(/\//g, '|') : ''}`;
     }
 
     async getTree() {
@@ -22,15 +22,16 @@ export default class UIArtisanApi {
         return await request({
             url: `${this.baseUrl}/components`,
             method: 'get',
-            params: {path: this.uiPath}
+            params: { path: this.uiPath }
         });
     }
 
-    async createComponent(id, category, type) {
+    // TODO batch create api?
+    async createComponent(id, category, type, meta) {
         return await request({
             url: `${this.baseUiUrl}/${id}`,
             method: 'post',
-            data: {type, category}
+            data: { type, category, meta }
         });
     }
 
@@ -38,7 +39,7 @@ export default class UIArtisanApi {
         return await request({
             url: `${this.baseUiUrl}/${selectedNode.id}`,
             method: 'put',
-            data: {[editingProperty]: selectedNode.properties[editingProperty]}
+            data: { [editingProperty]: selectedNode.properties[editingProperty] }
         });
     }
 
