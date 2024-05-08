@@ -50,9 +50,9 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
   else if (fieldNames == 'searchable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.searchable);
   return fieldNames.map(fieldName => {
-    if (typeof fieldName === "object") return fieldName; // 自定义的field对象
-    const fieldDef = getFieldDef(entityMetadata, fieldName, this.$metadata);
-    return { ...fieldDef, name: fieldName };
+    // 自定义的field对象
+    var fieldDef = getFieldDef(entityMetadata, (typeof fieldName === "object") ? fieldName.name : fieldName, this.$metadata);
+    return { ...fieldDef, ...((typeof fieldName === "object") ? fieldName : { name: fieldName }) };
   });
 }
 
