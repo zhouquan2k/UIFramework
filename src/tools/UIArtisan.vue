@@ -37,7 +37,7 @@
                     style="margin:10px" border>
                     <template slot="extra">
                     </template>
-                    <el-descriptions-item v-for="property in componentsByType[selectedNode?.name]?.properties ?? []"
+                    <el-descriptions-item v-for="property in componentsByType[selectedNode?.type]?.properties ?? []"
                         :key="property.name">
                         <template slot="label">{{ property.name }}</template>
                         <div class="property">
@@ -47,7 +47,7 @@
                                 v-else-if="['String', 'Integer'].includes(property.type)"
                                 v-model="selectedNode.properties[property.name]"></el-input>
                             <DictionarySelect class="property-edit"
-                                v-else-if="['Boolean', 'AllDictionaries'].includes(property.type)"
+                                v-else-if="['Boolean', 'AllDictionaries', 'AllEntities'].includes(property.type)"
                                 v-model="selectedNode.properties[property.name]" :dictionary="property.type"
                                 @change="onChange">
                             </DictionarySelect>
@@ -88,10 +88,10 @@
         </el-drawer>
         <el-dialog title="Entity Wizard" :visible.sync="entityWizardDialog" width="600" height="600">
             <DictionarySelect placeholder="Entities" dictionary="AllEntities" v-model="entityName"
-                @change="onEntityChange" :multiple="false" />
+                @change="onEntityChange" :multiple="false" /><el-button @click="onAutoSelect">Auto Select</el-button>
             <div style="height:500px; overflow-y: auto;">
                 <el-tree show-checkbox ref="entityWizardEntityTree" :data="dataTree" :props="treeProps"
-                    @node-click="onSelectDataNode" style="margin:10px">
+                    @node-click="onSelectDataNode" style="margin:10px" node-key="id">
                 </el-tree>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -238,6 +238,7 @@ export default {
             nodeById: {},
             dialogVisible: false,
             entityWizardDialog: false,
+            entityWizardMode: null,
             dataName: null,
             dataTree: [{ name: 'No data available' }],
             mode: false,
@@ -245,6 +246,7 @@ export default {
             dynamicComponentKey: null,
             dynamicComponent: null,
             selectedEntity: null,
+            creatingWidget: null,
         }
     },
     methods: {
@@ -317,15 +319,15 @@ export default {
             this.selectedElement = element;
             this.selectedElementOriginColor = element.style.border;
             element.style.border = "2px dashed #e6a23c";
-
-            // this.$refs.dynamicComponent.uiArtisanDesignTime('assignRolesVisible');
+            if (this.selectedNode.properties.entity) this.entityName = this.selectedNode.properties.entity;
         },
-        entityToTree(entity, parentId, depth) {
+        entityToTree(entity, mode, parentId, depth) {
             var props = entity.fields;
             return props.map(prop => ({
                 id: `${parentId ? parentId + '.' : ''}${prop.name}`,
                 name: `${prop.name} = ${prop.label}`,
-                children: prop.type == 'None' && !prop.fullTypeName.startsWith('java.') && depth < 5 && this.$metadata.entitiesMap[prop.typeName] ? this.entityToTree(this.$metadata.entitiesMap[prop.typeName], `${parentId ? parentId + '.' : ''}${prop.name}`, depth + 1) : null
+                children: prop.type == 'None' && !prop.fullTypeName.startsWith('java.') && depth < 5 && this.$metadata.entitiesMap[prop.typeName] ? this.entityToTree(this.$metadata.entitiesMap[prop.typeName], mode, `${parentId ? parentId + '.' : ''}${prop.name}`, depth + 1) : null,
+                disabled: mode == 'searches' && !prop.searchable,
             }));
         },
         convertToTree(data, parentId) {
@@ -360,7 +362,11 @@ export default {
         onEntityChange(entityName) {
             this.selectedEntity = this.$metadata.entitiesMap[entityName];
             // TODO 支持级联属性的选择
-            this.dataTree = this.entityToTree(this.selectedEntity, null, 0);
+            this.dataTree = this.entityToTree(this.selectedEntity, this.entityWizardMode, null, 0);
+
+            // 全部替换可能会破坏已存在的微调，暂时不提供
+            // const checkedNodes = this.selectedNode.children.map(child => ({ id: child.id }));
+            // this.$refs.entityWizardEntityTree.setCheckedNodes(checkedNodes);
         },
         copyToClipboard(text) {
             // copy to clipboard
@@ -379,25 +385,34 @@ export default {
         async onCreateChild() {
             var category = this.newComponentType[0];
             var widget = this.newComponentType[1];
+            this.creatingWidget = widget;
+            this.newComponentType = [];
             if (category == 'entities') {
+                if (this.entityName) this.onEntityChange(this.entityName);
+                this.entityWizardMode = this.selectedNode.properties.slot;
                 this.entityWizardDialog = true;
                 return;
             }
             var newId = await this.uiArtisanApi.createComponent(this.selectedNode.id, category, widget);
-            this.newComponentType = [];
             await this.refreshTree();
             setTimeout(() => {
                 this.onSelectNodeFromUI(newId);
             }, 1000);
         },
+        onAutoSelect() {
+            const isList = this.entityWizardMode == 'columns';
+            const checkedNodes = this.selectedEntity.fields.filter(field => field[isList ? 'listable' : 'searchable'] && !field.hidden).map(field => ({ id: field.name }));
+            this.$refs.entityWizardEntityTree.setCheckedNodes(checkedNodes);
+        },
         async onEntityWizard() {
+            // const isList = this.selectedNode.properties.slot == 'columns';
             this.entityWizardDialog = false;
             this.newComponentType = [];
             const checked = this.$refs.entityWizardEntityTree.getCheckedNodes();
             for (const node of checked) {
                 // const meta = this.selectedEntity.fields.find(field => field.name == node.id);
                 const meta = this.selectedEntity.name + "." + node.id;
-                await this.uiArtisanApi.createComponent(this.selectedNode.id, '?', 'el-table-column', meta);
+                await this.uiArtisanApi.createComponent(this.selectedNode.id, '?', '?', meta);
             };
             this.refreshTree();
         },
@@ -448,7 +463,10 @@ export default {
                     }
 
                     // 将遮罩层添加到元素中
-                    el.appendChild(mask);
+                    if (el.localName == 'input')
+                        el.parentElement.appendChild(mask);
+                    else
+                        el.appendChild(mask);
 
                     // 标记已添加遮罩，避免重复操作
                     el.classList.add('has-mask');

@@ -179,7 +179,7 @@ export function globalErrorHandler(err, vm, info) {
   else {
     Element.Message({
       dangerouslyUseHTMLString: true,
-      message: `<span style="font-weight:bold">${err.name == 'AxiosError' ? `后端异常:   ${err.config?.url}` : err.name}</span> \n\n ${err.code ?? ''} - ${err.message ?? ''} \n\n  ${(err?.response?.data.errCode ?? '-')} \n`.replace(/\n/g, '<br/>'),
+      message: `<span style="font-weight:bold">${err.name == 'AxiosError' ? `后端异常:   ${err.config?.url}` : err.name}</span> \n\n ${err.code ?? ''} - ${err.message ?? ''} \n\n  ${(err?.response?.data.message ?? '-')} \n`.replace(/\n/g, '<br/>'),
       type: 'error',
       duration: 0,
       showClose: true,
