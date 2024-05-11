@@ -26,12 +26,20 @@ export default class UIArtisanApi {
         });
     }
 
-    // TODO batch create api?
-    async createComponent(id, category, type, meta) {
+    // batch create api
+    async createComponent(id, newComponents) {
         return await request({
             url: `${this.baseUiUrl}/${id}`,
             method: 'post',
-            data: { type, category, meta }
+            data: newComponents
+        });
+    }
+
+    async moveComponent(id, droppedId, droppedType) {
+        return await request({
+            url: `${this.baseUiUrl}/${id}/move`,
+            method: 'put',
+            data: { droppedId, droppedType }
         });
     }
 

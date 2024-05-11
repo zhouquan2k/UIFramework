@@ -17,9 +17,14 @@
                             inactive-text="design"></el-switch>
                     </div>
                     <el-tree ref="tree" :data="tree" :props="treeProps" @node-click="onSelectNode" highlight-current
-                        :expand-on-click-node="false" node-key="id" :default-expanded-keys="expandedNodes"
-                        :render-after-expand="false" @node-expand="node => expandedNodes.push(node.id)"
-                        @node-collapse="node => expandedNodes = expandedNodes.filter(id => id != node.id)"></el-tree>
+                        :expand-on-click-node="false" node-key="id" :default-expanded-keys="Array.from(expandedNodes)"
+                        :render-after-expand="false" @node-expand="node => expandedNodes.add(node.id)"
+                        @node-collapse="onCollapseNode" @node-drop="handleDrop" draggable :allow-drop="allowDrop"
+                        :allow-drag="allowDrag">
+                        <span class="custom-tree-node" slot-scope="{ node, data }">
+                            <i :class="data.icon" /><span> {{ node.label }}</span>
+                        </span>
+                    </el-tree>
                 </el-aside>
                 <el-main>
                     <component ref="dynamicComponent" :is="dynamicComponent" :key="dynamicComponentKey"
@@ -122,6 +127,7 @@
 <script>
 import UIArtisanApi from '@/tools/UIArtisan.js';
 import DictionarySelect from '@/components/dictionary_select.vue';
+import { isValid } from '@/utils/utils';
 
 const edittingUis = [
     {
@@ -187,27 +193,6 @@ export default {
             }
             return Object.values(categories);
         },
-        /*
-        dataTree() {
-            // convert datas[dataName] to a tree using recursive function
-            var datas = this.$refs.dynamicComponent;
-            if (!datas?.[this.dataName]) return [{name:'No data available'}];
-            const convertToTree = (data) => {
-                if (Array.isArray(data)) {
-                    return data.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.label,
-                            children: convertToTree(item.children)
-                        }
-                    });
-                }
-                return [];
-            }
-            return convertToTree(datas[this.dataName]);
-        }
-        */
-
     },
     components: { DictionarySelect },
     data() {
@@ -242,7 +227,7 @@ export default {
             dataName: null,
             dataTree: [{ name: 'No data available' }],
             mode: false,
-            expandedNodes: [],
+            expandedNodes: new Set(),
             dynamicComponentKey: null,
             dynamicComponent: null,
             selectedEntity: null,
@@ -250,15 +235,30 @@ export default {
         }
     },
     methods: {
+        onCollapseNode(node) {
+            this.expandedNodes.delete(node.id);
+        },
+        allowDrop(draggingNode, dropNode, type) {
+            return draggingNode.parent == dropNode.parent && type != 'inner';
+            //  isValid(dropNode.data.children) || type != 'inner';
+        },
+        allowDrag(draggingNode) {
+            return true;
+        },
+        async handleDrop(draggingNode, dropNode, dropType, ev) {
+            console.log('tree drop: ', draggingNode.data.id, dropNode.data.id, dropType);
+            await this.uiArtisanApi.moveComponent(draggingNode.data.id, dropNode.data.id, dropType);
+            this.refreshTree();
+        },
         onExploreData() {
             this.dialogVisible = true;
         },
         async refreshTree() {
             this.nodeById = {};
-            this.tree = [await this.uiArtisanApi.getTree()];
+            this.tree = (await this.uiArtisanApi.getTree()).children;
             // populate nodeById by visit each node of the tree
             const visitNode = (node, level) => {
-                if (level < 3 && node.id) this.expandedNodes.push(node.id);
+                if (level < 3 && node.id) this.expandedNodes.add(node.id);
                 this.nodeById[node.id] = node;
                 if (node.children) {
                     node.children.forEach(child => visitNode(child, level + 1));
@@ -323,7 +323,7 @@ export default {
         },
         entityToTree(entity, mode, parentId, depth) {
             var props = entity.fields;
-            return props.map(prop => ({
+            return props.filter(prop => !prop.hidden || prop.type == 'None').map(prop => ({
                 id: `${parentId ? parentId + '.' : ''}${prop.name}`,
                 name: `${prop.name} = ${prop.label}`,
                 children: prop.type == 'None' && !prop.fullTypeName.startsWith('java.') && depth < 5 && this.$metadata.entitiesMap[prop.typeName] ? this.entityToTree(this.$metadata.entitiesMap[prop.typeName], mode, `${parentId ? parentId + '.' : ''}${prop.name}`, depth + 1) : null,
@@ -363,10 +363,10 @@ export default {
             this.selectedEntity = this.$metadata.entitiesMap[entityName];
             // TODO 支持级联属性的选择
             this.dataTree = this.entityToTree(this.selectedEntity, this.entityWizardMode, null, 0);
-
-            // 全部替换可能会破坏已存在的微调，暂时不提供
-            // const checkedNodes = this.selectedNode.children.map(child => ({ id: child.id }));
-            // this.$refs.entityWizardEntityTree.setCheckedNodes(checkedNodes);
+            setTimeout(() => {
+                const checkedNodes = this.selectedNode.children.filter(c => c.properties.meta).map(c => ({ id: c.properties.meta }));
+                this.$refs.entityWizardEntityTree.setCheckedNodes(checkedNodes);
+            }, 100);
         },
         copyToClipboard(text) {
             // copy to clipboard
@@ -393,7 +393,7 @@ export default {
                 this.entityWizardDialog = true;
                 return;
             }
-            var newId = await this.uiArtisanApi.createComponent(this.selectedNode.id, category, widget);
+            var newId = await this.uiArtisanApi.createComponent(this.selectedNode.id, [{ category, type: widget }]);
             await this.refreshTree();
             setTimeout(() => {
                 this.onSelectNodeFromUI(newId);
@@ -409,11 +409,7 @@ export default {
             this.entityWizardDialog = false;
             this.newComponentType = [];
             const checked = this.$refs.entityWizardEntityTree.getCheckedNodes();
-            for (const node of checked) {
-                // const meta = this.selectedEntity.fields.find(field => field.name == node.id);
-                const meta = this.selectedEntity.name + "." + node.id;
-                await this.uiArtisanApi.createComponent(this.selectedNode.id, '?', '?', meta);
-            };
+            await this.uiArtisanApi.createComponent(this.selectedNode.id, checked.map(node => ({ type: '?', category: '?', meta: this.selectedEntity.name + "." + node.id })));
             this.refreshTree();
         },
         async onDelete() {
@@ -564,6 +560,10 @@ export default {
     }
 }
 
+
+.custom-tree-node {
+    font-size: 14px;
+}
 
 .el-tree ::v-deep {
     .el-tree-node.is-current .el-tree-node__content {
