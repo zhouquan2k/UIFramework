@@ -217,7 +217,8 @@ export function hasPermission(permission, location, allPermissions) {
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
   // TODO 不能写成perm.startsWith(permission)会导致错误的匹配其他项目的权限
-  return allPermissions && (allPermissions.some(perm => perm === permString //|| perm == permission // || 
+  return allPermissions && (allPermissions.some(perm => perm === permString
+    || (perm.endsWith("@") && perm.substring(0, perm.length - 1) == permission) // xxxx@ has permission for all locations
     || allPermissions.indexOf(AdminPermission) >= 0));
 }
 
@@ -299,6 +300,14 @@ Vue.prototype.$success = function (msg) {
     title: '成功',
     message: msg,
     type: 'success'
+  });
+};
+
+Vue.prototype.$warning = function (msg) {
+  this.$notify({
+    title: '警告',
+    message: msg,
+    type: 'warning'
   });
 };
 
