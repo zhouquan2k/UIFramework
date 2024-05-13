@@ -1,6 +1,7 @@
 <template>
-    <el-select :class="theClass" @change="onSelect" filterable :filter-method="filterMethod" :placeholder="placeholder"
-        :value="value" :multiple="multiple" :clearable="clearable" :disabled="disabled" :collapse-tags="collapseTags">
+    <el-select :class="theClass" @change="onSelect" @remove-tag="onClear" filterable :filter-method="filterMethod"
+        :placeholder="placeholder" :value="value" :multiple="multiple" :clearable="clearable" :disabled="disabled"
+        :collapse-tags="collapseTags">
         <el-option v-for="item in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label" :value="item.value"
             :key="item.value" />
     </el-select>
@@ -31,7 +32,7 @@ export default {
     methods: {
         onSelect(event) {
             this.dictionaryData = this.$metadata.dictionaries[this.dictionary];
-            this.$emit('change', event)
+            this.$emit('change', !event || event == '' ? null : event);
         },
         filterMethod(val, param) {
             if (val && val != ' ') {

@@ -1,7 +1,7 @@
 <template>
     <div>
         <SimpleTable ref="simple-table" :searchVisible="true" :columns="_columns" :searches="_searches"
-            :searchMethod="searchMethod" :actions="actions" :searchParams="searchParams" v-on="$listeners"
+            :searchMethod="searchMethod" :actions="actions" :fixedSearchParams="fixedSearchParams" v-on="$listeners"
             @edit="showEditDialog" @delete="showDeleteConfirm">
             <template
                 v-for="slot in Object.keys($scopedSlots).filter(slot => slot.startsWith('simple-table_')).map(slot => slot.split('_')[1])"
@@ -46,7 +46,7 @@ export default {
         actions: { default: () => defaultCrudActions },
         columns: { default: () => null },
         searches: { default: () => null },
-        searchParams: { default: () => null },
+        fixedSearchParams: { default: () => null },
         searchMethod: { default: () => null },
         formCols: { default: () => 2 },
 

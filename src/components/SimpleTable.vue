@@ -69,7 +69,8 @@
                     <span v-else>{{ safeGet(scope.row, field.name) }}</span>
                 </template>
             </el-table-column>
-            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="150">
+            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right"
+                :width="actions.length > 2 ? 200 : actions.length * 70">
                 <template slot-scope="scope">
                     <el-button :name="`${action.desc}`"
                         v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"
@@ -110,7 +111,7 @@ export default {
         buttons: { type: Array, default: () => ([]) },
         searches: { type: Array, default: () => ([]) },
         searchParams: { type: Object, default: () => ({}) }, // searchForm的初值，可变
-        fixedSearchParams: { type: Object, default: () => ({}) },
+        fixedSearchParams: { type: Object, default: () => ({}) }, // 外部控制的参数
         toolbarVisible: { type: Boolean, default: () => true },
         searchVisible: { type: Boolean, default: () => false },
         checkboxVisible: { type: Boolean, default: () => false },
