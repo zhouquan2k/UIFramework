@@ -217,9 +217,11 @@ export function hasPermission(permission, location, allPermissions) {
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
   // TODO 不能写成perm.startsWith(permission)会导致错误的匹配其他项目的权限
-  return allPermissions && (allPermissions.some(perm => perm === permString
-    || (perm.endsWith("@") && perm.substring(0, perm.length - 1) == permission) // xxxx@ has permission for all locations
+  var ret = allPermissions && (allPermissions.some(perm => perm === permString
+    || (perm.endsWith("@") && perm.substring(0, perm.length - 1) == permission) // xxxx@: has permission for all locations when it's permission support location
+    || `${perm}@${location}` == permString // xxx: has permission for all locations if permission not a permission need location. 
     || allPermissions.indexOf(AdminPermission) >= 0));
+  return ret;
 }
 
 export function trimProcess(object) {
