@@ -10,7 +10,14 @@ export function isValid(value) {
 // 也可以使用lodash _.get(project,'a.b')， 已放入vue
 
 export function safeGet(o, path) {
-  return path.split('.').reduce((o = {}, b) => o[b], o);
+  return path?.split('.').reduce((o = {}, b) => o[b], o);
+}
+
+export function safeSet(o, path, newValue) {
+  const paths = path.split('.');
+  const last = paths.pop();
+  const target = paths.reduce((o = {}, b) => o[b], o);
+  target[last] = newValue;
 }
 
 export function getForTemplate(tempalte, params) {
@@ -31,7 +38,7 @@ export function check(condition, message) {
 export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
-const getFieldDef = (entity, fieldName, metadata) => {
+export const getFieldDef = (entity, fieldName, metadata) => {
   const pos = fieldName.indexOf('.');
   if (pos < 0) return entity.fieldMap[fieldName];
   const fieldPart = fieldName.substring(0, pos);
@@ -49,6 +56,9 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.listable);
   else if (fieldNames == 'searchable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.searchable);
+  else if (fieldNames == 'editable')
+    return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.updatable);
+
   return fieldNames.map(fieldName => {
     // 自定义的field对象
     var fieldDef = getFieldDef(entityMetadata, (typeof fieldName === "object") ? fieldName.name : fieldName, this.$metadata);

@@ -131,7 +131,12 @@ import { isValid } from '@/utils/utils';
 
 const edittingUis = [
     {
-        path: 'test.vue',
+        path: 'test_detail.vue',
+        props: {
+        }
+    },
+    {
+        path: 'test_list.vue',
         props: {
         }
     },
@@ -302,8 +307,8 @@ export default {
         onSelectNode(node) {
             var tree = this.$refs.tree;
             const n = tree.getNode(node?.id); // 获取节点
-            if (n) {
-                tree.store.nodesMap[node.id].parent.expand(null, true); // 展开节点
+            if (n && n.level > 1) {
+                tree.store.nodesMap[node.id].parent?.expand(null, true); // 展开节点
             }
 
             if (this.selectedElement) {
