@@ -1,12 +1,9 @@
 <template>
     <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
         class="input-form">
-        <el-row v-if="formStyle == 'default'">
+        <el-row>
             <slot></slot>
         </el-row>
-        <el-descriptions :column="formCols" border>
-            <slot></slot>
-        </el-descriptions>
     </el-form>
 </template>
 <script>
@@ -17,7 +14,6 @@ export default {
     props: {
         name: {},
         detail: {},
-        formStyle: { type: String, default: () => 'default' },
         mode: {}, // create/update/readonly
         formCols: { type: Number, default: 1 },
         meta: { type: String, default: () => null },

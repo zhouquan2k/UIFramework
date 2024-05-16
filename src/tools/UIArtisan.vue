@@ -369,7 +369,7 @@ export default {
             // TODO 支持级联属性的选择
             this.dataTree = this.entityToTree(this.selectedEntity, this.entityWizardMode, null, 0);
             setTimeout(() => {
-                const checkedNodes = this.selectedNode.children.filter(c => c.properties.meta).map(c => ({ id: c.properties.meta }));
+                const checkedNodes = this.selectedNode.children?.filter(c => c.properties.meta).map(c => ({ id: c.properties.meta }));
                 this.$refs.entityWizardEntityTree.setCheckedNodes(checkedNodes);
             }, 100);
         },
