@@ -16,7 +16,8 @@ export function safeGet(o, path) {
 export function safeSet(o, path, newValue) {
   const paths = path.split('.');
   const last = paths.pop();
-  const target = paths.reduce((o = {}, b) => o[b], o);
+  // if path is not exist, create it
+  const target = paths.reduce((o = {}, b) => o[b] = o[b] || {}, o);
   target[last] = newValue;
 }
 
@@ -304,6 +305,37 @@ export function notImplemented(vue) {
 
 export function generateUniqueKey() {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+export function handleGroupbyRows(data, columns, groupByColumns) {
+  // 对data进行分组统计, data已按分组字段排序，需要在data中添加分组小计的行
+  if (!groupByColumns) return data;
+  const res = [];
+  let lastGroup = null;
+  let group = null;
+  let groupTotal = {};
+  for (const row of data) {
+    group = groupByColumns.map(col => safeGet(row, col)).join(','); //value of group by columns
+    if (group !== lastGroup) {
+      if (lastGroup) {
+        res.push({ ...groupTotal, _isGroupTotal: true });
+        groupTotal = {};
+      }
+      lastGroup = group;
+    }
+    for (const col of columns) {
+      if (col.type === 'Integer' || col.type === 'Decimal') {
+        safeSet(groupTotal, col.name, (safeGet(groupTotal, col.name) || 0) + (safeGet(row, col.name) || 0));
+      }
+      else
+        safeSet(groupTotal, col.name, safeGet(row, col.name));
+    }
+    res.push(row);
+  }
+  if (group) {
+    res.push({ ...groupTotal, _isGroupTotal: true });
+  }
+  return res;
 }
 
 import Vue from 'vue';

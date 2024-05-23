@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { dateFormatter, safeGet, hasPermission, globalDateFormat, isValid } from "@/utils/utils";
+import { dateFormatter, safeGet, hasPermission, globalDateFormat, isValid, handleGroupbyRows } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
 import DictionaryTag from '@/components/dictionary_tag.vue';
 import * as XLSX from 'xlsx';
@@ -106,6 +106,8 @@ export default {
     props: {
         idCol: { default: () => 'id' },
         columns: { type: Array },
+        groupByColumns: { type: Array, default: () => null },
+        groupTotalColumns: { type: Array, default: () => [] },
         searchMethod: { type: Function },
         actions: { type: Array, default: () => ([]) },
         buttons: { type: Array, default: () => ([]) },
@@ -121,6 +123,7 @@ export default {
         emptyText: { default: () => null },
         summaryMethod: { default: () => null },
         showSummary: { default: () => false },
+
     },
     watch: {
         fixedSearchParams: {
@@ -191,7 +194,8 @@ export default {
             };
             console.log('searching...', JSON.stringify(this.searchForm), JSON.stringify(this.fixedSearchParams));
             if (this.searchMethod) {
-                this.list = await this.searchMethod({ ...flatten(this.searchForm), ...flatten(this.fixedSearchParams) });
+                const list = await this.searchMethod({ ...flatten(this.searchForm), ...flatten(this.fixedSearchParams) });
+                this.list = handleGroupbyRows(list, this.groupTotalColumns, this.groupByColumns);
             }
         },
         handleSelectionChange(data) {
