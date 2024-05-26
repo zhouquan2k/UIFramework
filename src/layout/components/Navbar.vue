@@ -16,7 +16,9 @@
       <div class="text"><a :href="url">{{ title }}</a></div>
     </div>
     <div class="right-menu">
+
       <div class="myicon">
+        <a href="/download/ChromeStandaloneSetup64.exe" style="font-size:12px;margin-right:10px">下载浏览器</a>
         <a href="/"><i class=" el-icon-s-home"></i>
           <el-badge :value="taskCount" class="badge"></el-badge>
         </a>

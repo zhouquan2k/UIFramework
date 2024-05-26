@@ -1,12 +1,13 @@
 <template>
     <el-select :class="theClass" @change="onSelect" filterable :filter-method="filterMethod" :placeholder="placeholder"
         :value="value" :multiple="multiple" :clearable="clearable" :disabled="disabled" :collapse-tags="collapseTags">
-        <el-option v-for="item in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label" :value="item.value"
-            :key="item.value" />
+        <el-option v-for="item, index in dictionaryData" v-if="item.tag != 'invisible'" :label="item.label"
+            :value="item.value" :key="item.value" />
     </el-select>
 </template>
 <script>
 import pinyin from "pinyin";
+import { isValid } from "@/utils/utils";
 export default {
     model: {
         prop: 'value',
@@ -31,7 +32,7 @@ export default {
     methods: {
         onSelect(event) {
             this.dictionaryData = this.$metadata.dictionaries[this.dictionary];
-            this.$emit('change', !event || event == '' ? null : event);
+            this.$emit('change', !isValid(event) ? null : event);
         },
         filterMethod(val, param) {
             if (val && val != ' ') {
