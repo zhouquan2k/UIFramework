@@ -36,7 +36,7 @@ export default {
         },
         filterMethod(val, param) {
             if (val && val != ' ') {
-                this.dictionaryData = this.$metadata.dictionaries[this.dictionary].filter(item => {
+                this.dictionaryData = this.$metadata.dictionaries[this.dictionary]?.filter(item => {
                     let optionPinyin = pinyin(item.label, {
                         style: pinyin.STYLE_FIRST_LETTER
                     }).join('');
