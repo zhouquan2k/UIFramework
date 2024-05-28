@@ -56,7 +56,8 @@
                     </template>
                     <DictionaryTag
                         v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
-                        :value="safeGet(scope.row, field.name)" :dictName="field.typeName" tag />
+                        :value="safeGet(scope.row, field.name)"
+                        :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName" tag />
                     <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
                         {{ field.refData && field.refData.startsWith('dictionary:') ?
             $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
@@ -86,8 +87,8 @@
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
                                 :command="action.event" v-if="!action.available || action.available(scope.row)"
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
-                                action.desc
-                                }}</el-dropdown-item>
+            action.desc
+        }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
                 </template>
@@ -106,6 +107,7 @@ export default {
     props: {
         idCol: { default: () => 'id' },
         columns: { type: Array },
+        data: { type: Array, default: () => null },
         groupByColumns: { type: Array, default: () => null },
         groupTotalColumns: { type: Array, default: () => [] },
         searchMethod: { type: Function },
@@ -178,6 +180,10 @@ export default {
             this.onSearch();
         },
         async onSearch() {
+            if (this.data) {
+                this.list = this.data;
+                return;
+            }
             for (const key in this.searchForm) {
                 if (this.searchForm[key] === "") delete this.searchForm[key];
             }
