@@ -366,7 +366,7 @@ Vue.prototype.$Confirm = async function (confirmMessage) {
 Vue.prototype.$refreshToUrl = function (url, replace) {
   const queryString = new URLSearchParams(this.$route.query).toString();
   const currentUrl = this.$route.path;
-  if (url == currentUrl) {
+  if (url == currentUrl || !url) {
     this.$router.replace('/').then(() => {
       this.$router.replace(url);
     });

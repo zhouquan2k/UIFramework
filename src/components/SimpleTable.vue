@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :style="tableStyle">
         <div class="grid-toolbar" v-if="toolbarVisible">
             <div style="display: flex;width: 90%;">
                 <i v-if="searches?.length > 0" class="el-icon-arrow-right"
@@ -41,7 +41,7 @@
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
             :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
-            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary">
+            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
@@ -49,7 +49,7 @@
                 </template>
             </el-table-column>
             <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
-                :width="field.colWidth" sortable>
+                :width="field.colWidth" :sortable="showSort">
                 <template slot-scope="scope">
                     <template v-if="$scopedSlots[`columns-${field.name}`]">
                         <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
@@ -60,12 +60,12 @@
                         :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName" tag />
                     <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
                         {{ field.refData && field.refData.startsWith('dictionary:') ?
-            $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
-            :
-            safeGet(scope.row,
-                field.refData) }}</span>
+        $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
+        :
+        safeGet(scope.row,
+            field.refData) }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
-            safeGet(scope.row, field.name), field)
+        safeGet(scope.row, field.name), field)
                         }}</span>
                     <span v-else>{{ safeGet(scope.row, field.name) }}</span>
                 </template>
@@ -87,8 +87,8 @@
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
                                 :command="action.event" v-if="!action.available || action.available(scope.row)"
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
-            action.desc
-        }}</el-dropdown-item>
+                                action.desc
+                                }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
                 </template>
@@ -125,7 +125,9 @@ export default {
         emptyText: { default: () => null },
         summaryMethod: { default: () => null },
         showSummary: { default: () => false },
-
+        size: { default: () => '' },
+        tableStyle: { default: () => null },
+        showSort: { default: () => true },
     },
     watch: {
         fixedSearchParams: {
