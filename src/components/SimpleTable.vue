@@ -87,7 +87,7 @@
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
                                 :command="action.event" v-if="!action.available || action.available(scope.row)"
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
-                                action.desc
+        action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
@@ -175,6 +175,9 @@ export default {
         callMethod(event, row) {
             // this.$emit('action', { name: methodName, params: params });
             this.$emit(event, row);
+        },
+        toggleRowExpansion(row, expanded) {
+            this.$refs.table.toggleRowExpansion(row, expanded);
         },
         onReset() {
             this.searchForm = { ...this.searchParams };
