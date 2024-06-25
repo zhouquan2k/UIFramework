@@ -67,6 +67,7 @@
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
         safeGet(scope.row, field.name), field)
                         }}</span>
+                    <span v-else-if="field.render">{{ field.render(scope.row) }}</span>
                     <span v-else>{{ safeGet(scope.row, field.name) }}</span>
                 </template>
             </el-table-column>
@@ -87,7 +88,7 @@
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
                                 :command="action.event" v-if="!action.available || action.available(scope.row)"
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
-        action.desc
+                                action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>

@@ -62,6 +62,7 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
 
   return fieldNames.map(fieldName => {
     // 自定义的field对象
+    if (typeof fieldName === "object" && !fieldName.name) return fieldName; //fullly customized
     var fieldDef = getFieldDef(entityMetadata, (typeof fieldName === "object") ? fieldName.name : fieldName, this.$metadata);
     return { ...fieldDef, ...((typeof fieldName === "object") ? fieldName : { name: fieldName }) };
   });
