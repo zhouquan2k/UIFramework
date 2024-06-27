@@ -275,6 +275,10 @@ export function dateFormatter(x, y, value, meta) {
   return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
 }
 
+export function dateFormatter2(value, meta) {
+  return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
+}
+
 export function tableDateFormatter(x, y, value, index) {
   return value?.substring(0, 10);
 }
