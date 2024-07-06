@@ -37,7 +37,7 @@
             </slot>
         </div>
 
-        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
+        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol" v-loading="loading"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
             :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
@@ -129,12 +129,19 @@ export default {
         size: { default: () => '' },
         tableStyle: { default: () => null },
         showSort: { default: () => true },
+        loading: { default: () => false },
     },
     watch: {
         fixedSearchParams: {
             handler(newVal) {
                 //if (this.autoSearch)
                 this.onSearch();
+            },
+            deep: true,
+        },
+        data: {
+            handler(newVal) {
+                this.list = newVal;
             },
             deep: true,
         }
