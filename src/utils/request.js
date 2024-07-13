@@ -136,10 +136,10 @@ function handleAuthorized() {
       type: 'warning'
     }
     ).then(() => {
-      isRelogin.show = false;
       store.dispatch('LogOut').finally(() => {
         console.log(window.location.href);
         window.vue.$router.push(`/login?from=${encodeURIComponent(window.location.href)}`);
+        setTimeout(() => { isRelogin.show = false; }, 1000);
         //location.href = '/login?from=' + vue.$route.fullPath;
       })
     }).catch(() => {
