@@ -15,6 +15,7 @@ module.exports = defineConfig({
         '@': resolve('src'),
         '@user': resolve('src/user'),
         '@gcp': resolve('src/gcp'),
+        '@gcpd': resolve('src/gcpd'),
       },
     },
     performance: {
