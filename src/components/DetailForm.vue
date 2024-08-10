@@ -2,13 +2,20 @@
     <el-form ref="detail-form" :model="detail" label-position="right" label-width="120px" :rules="rules"
         class="input-form">
         <el-row>
-            <slot></slot>
+            <slot name="fields"></slot>
+            <template v-if="!$slots['fields']">
+                <SingleEditor :meta="field.name" v-for="field in fields" />
+            </template>
+            <div style="margin:10px">
+                <slot name="buttons"></slot>
+            </div>
         </el-row>
     </el-form>
 </template>
 <script>
-import { initMetadata, globalDateFormat } from '@/utils/utils';
-import DictionarySelect from '@/components/dictionary_select.vue';
+import Vue from 'vue';
+import { globalDateFormat } from '@/utils/utils';
+import SingleEditor from '@/components/SingleEditor.vue';
 export default {
     name: 'DetailForm',
     props: {
@@ -17,7 +24,6 @@ export default {
         mode: {}, // create/update/readonly
         formCols: { type: Number, default: 1 },
         meta: { type: String, default: () => null },
-        toManySelectData: { default: () => ({}) },
     },
     inject: {
         getCustomComponent: { default: {} }
@@ -31,12 +37,12 @@ export default {
             formStyle: this.formStyle,
         };
     },
-    components: { DictionarySelect },
+    components: { SingleEditor },
     data() {
         return {
             globalDateFormat,
+            fields: [],
             rules: {},
-            metadata: null,
         };
     },
     methods: {
@@ -44,8 +50,8 @@ export default {
             return this.$refs['detail-form'].validate(callback);
         }
     },
-    async created() {
-        await initMetadata(this, null, this.name);
+    created() {
+        this.fields = this.getEntityFields(this.meta, 'editable');
     }
 }
 </script>

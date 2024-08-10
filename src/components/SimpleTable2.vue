@@ -3,7 +3,30 @@
         <div class="grid-toolbar" v-if="toolbarVisible">
             <div style="display: flex;width: 90%;">
                 <el-form v-show="searchVisible" inline class="search-form" v-model="searchForm">
-                    <slot name="searches" :data="searchForm">Searches...</slot>
+                    <slot name="searches" :data="searchForm"></slot>
+                    <template v-if="!$slots['searches']">
+                        <el-form-item v-for="field in searches" :key="field.name"
+                            v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Date', 'Timestamp'].includes(field.type) && !fixedSearchParams[field.name]">
+                            <template v-if="$scopedSlots[`searches-${field.name}`]">
+                                <slot :name="`searches-${field.name}`"></slot>
+                            </template>
+                            <el-input v-model="searchForm[field.name]" v-else-if="['ID', 'IDStr'].includes(field.type)"
+                                class="search-input" :placeholder="field.label" @keyup.enter.native="onSearch" />
+                            <el-input v-model="searchForm[field.name]" v-else-if="['Integer'].includes(field.type)"
+                                class="search-input" :placeholder="field.label"
+                                @keyup.enter.native="onSearch"></el-input>
+                            <el-input v-model="searchForm[field.name]" v-else-if="['String'].includes(field.type)"
+                                :placeholder="field.label" class="search-input" @keyup.enter.native="onSearch" />
+                            <el-date-picker v-model="searchForm[field.name]" :value-format="globalDateFormat"
+                                v-else-if="['Date', 'Timestamp'].includes(field.type)" class="search-input"
+                                :placeholder="field.label" type="daterange" @change="onSearch" range-separator="-"
+                                start-placeholder="开始" :end-placeholder="`结束${field.label}`">
+                            </el-date-picker>
+                            <DictionarySelect :theClass="field.name" v-model="searchForm[field.name]"
+                                :dictionary="field.typeName" v-else-if="['Enum', 'Dictionary'].includes(field.type)"
+                                :placeholder="field.label" :clearable="true" :multiple="true" :collapseTags="true" />
+                        </el-form-item>
+                    </template>
                     <el-form-item>
                         <el-button type="primary" plain @click="onSearch" style="margin-left: 10px">搜索</el-button>
                         <el-button @click="onReset">重置</el-button>
@@ -27,6 +50,32 @@
                 </template>
             </el-table-column>
             <slot name="columns"></slot>
+            <template v-if="!$slots['columns']">
+                <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
+                    :width="field.colWidth" sortable>
+                    <template slot-scope="scope">
+                        <template v-if="$scopedSlots[`columns-${field.name}`]">
+                            <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
+                        </template>
+                        <DictionaryTag
+                            v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
+                            :value="safeGet(scope.row, field.name)"
+                            :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName"
+                            tag />
+                        <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
+                            {{ field.refData && field.refData.startsWith('dictionary:') ?
+            $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row,
+                field.name)]?.label
+            :
+            safeGet(scope.row,
+                field.refData) }}</span>
+                        <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
+            safeGet(scope.row, field.name), field)
+                            }}</span>
+                        <span v-else>{{ safeGet(scope.row, field.name) }}</span>
+                    </template>
+                </el-table-column>
+            </template>
             <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right" width="150">
                 <template slot-scope="scope">
                     <el-button :name="`${action.desc}`"
@@ -50,6 +99,21 @@
                 </template>
             </el-table-column>
         </el-table>
+
+        <el-dialog v-if="dialogVisible" :title="`${label} - ${dialogTitle}`" :visible.sync="dialogVisible">
+            <DetailForm ref="detail-form" :name="entity" :detail="detail" :formCols="formCols" :mode="mode" />
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="save" v-if="mode != 'readonly'">确定</el-button>
+            </span>
+        </el-dialog>
+        <el-dialog title="确认删除" :visible.sync="deleteConfirmVisible">
+            <span>确定删除该{{ label }}吗？</span>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="deleteConfirmVisible = false">取消</el-button>
+                <el-button type="primary" @click="deleteRecord">确定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -61,6 +125,8 @@ import * as XLSX from 'xlsx';
 export default {
     name: 'SimpleTable',
     props: {
+        meta: { type: String },
+        label: { default: () => '' }, // entity's name
         idCol: { default: () => 'id' },
         searchMethod: { type: Function },
         actions: { type: Array, default: () => ([]) },
@@ -91,6 +157,10 @@ export default {
             globalDateFormat,
             list: [],
             searchForm: {},
+            columns: [],
+            searches: [],
+            dialogVisible: false,
+            deleteConfirmVisible: false,
 
             dateFormatter,
             tableUpdateKey: 2617,
@@ -165,29 +235,64 @@ export default {
                     sums[index] = '记录数：' + data.length;
                     return;
                 }
-                /* TODO according to column metadata
-                const values = data.map(item => Number(item[column.property]));
-                if (!values.every(value => isNaN(value))) {
-                    sums[index] = values.reduce((prev, curr) => {
-                    const value = Number(curr);
-                    if (!isNaN(value)) {
-                        return prev + curr;
-                    } else {
-                        return prev;
-                    }
-                    }, 0);
-                    // sums[index] += ' 元';
-                } else {
-                    // sums[index] = 'N/A';
-                }
-                */
             });
 
             return sums;
-        }
+        },
+        // 增删改查的所有功能
+        showAddDialog(current) {
+            this.detail = { parentId: current ? current[this.metadata.idField] : null };
+            this.metadata.fields.filter(field => field.defaultValue).forEach(field => this.detail[field.name] = field.defaultValue);
+            this.mode = 'create';
+            this.dialogTitle = '新建';
+            this.dialogVisible = true;
+        },
+        showEditDialog(row) {
+            if (this.$defaultActionEmit('edit', row)) return;
+            this.detail = row;
+            this.mode = 'update';
+            this.dialogTitle = '编辑';
+            this.dialogVisible = true;
+        },
+        showDetailDialog(row) {
+            this.detail = row;
+            this.dialogTitle = '详情';
+            this.mode = 'readonly';
+            this.dialogVisible = true;
+        },
+        showDeleteConfirm(detail) {
+            if (this.$defaultActionEmit('delete', row)) return;
+            this.detail = detail;
+            this.deleteConfirmVisible = true;
+        },
+        //save
+        async save() {
+            // TODO
+            this.$refs['detail-form'].validate(async (valid) => {
+                if (!valid) return false;
+                let response;
+                if (this.mode == 'update') {
+                    response = await this.apis.update(this.detail[this.metadata.idField], this.detail);
+                } else if (this.mode == 'create') {
+                    response = await this.apis.create({ ...this.detail }); //...this.searchForm
+                }
+                this.$message.success('保存成功');
+                await this.refresh();
+                this.dialogVisible = false;
+            });
+        },
+        async deleteRecord() {
+            const response = await this.apis.delete(this.detail[this.metadata.idField]);
+            this.$message.success('删除成功');
+            this.refresh();
+            this.deleteConfirmVisible = false;
+        },
+
 
     },
     mounted() {
+        this.columns = this.getEntityFields(this.meta, 'listable');
+        this.searches = this.getEntityFields(this.meta, 'searchable');
         this.searchForm = { ...this.searchParams };
         this.onSearch();
     }
