@@ -6,7 +6,6 @@ import store from './store'
 import { getRoutes as getUserRoutes } from '@user/router'
 // import { getRoutes as getAppRoutes } from '@app/router'
 import { getRoutes as getGcpRoutes } from '@gcp/router'
-import { getRoutes as getGcpdRoutes } from '@gcpd/router'
 
 //async
 export function initRouter() {
@@ -77,7 +76,7 @@ export function initRouter() {
     ];
 
     // get routes from all modules
-    [...getGcpRoutes(), ...getGcpdRoutes(), ...getUserRoutes(),].forEach(r => {
+    [...getGcpRoutes(), ...getUserRoutes(),].forEach(r => {
         // if (!r.meta) r.meta = { title: r.name };
         appRoute.children.push(r);
     });
