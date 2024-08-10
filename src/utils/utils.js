@@ -62,6 +62,7 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
 
   return fieldNames.map(fieldName => {
     // 自定义的field对象
+    if (typeof fieldName === "object" && !fieldName.name) return fieldName; //fullly customized
     var fieldDef = getFieldDef(entityMetadata, (typeof fieldName === "object") ? fieldName.name : fieldName, this.$metadata);
     return { ...fieldDef, ...((typeof fieldName === "object") ? fieldName : { name: fieldName }) };
   });
@@ -274,6 +275,10 @@ export function dateFormatter(x, y, value, meta) {
   return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
 }
 
+export function dateFormatter2(value, meta) {
+  return !meta || meta.type == 'Date' ? value?.substring(0, 10) : value;
+}
+
 export function tableDateFormatter(x, y, value, index) {
   return value?.substring(0, 10);
 }
@@ -366,7 +371,7 @@ Vue.prototype.$Confirm = async function (confirmMessage) {
 Vue.prototype.$refreshToUrl = function (url, replace) {
   const queryString = new URLSearchParams(this.$route.query).toString();
   const currentUrl = this.$route.path;
-  if (url == currentUrl) {
+  if (url == currentUrl || !url) {
     this.$router.replace('/').then(() => {
       this.$router.replace(url);
     });

@@ -93,9 +93,9 @@ export default {
             this.mode = 'readonly';
             this.dialogVisible = true;
         },
-        showDeleteConfirm(detail) {
+        showDeleteConfirm(row) {
             if (this.$defaultActionEmit('delete', row)) return;
-            this.detail = detail;
+            this.detail = row;
             this.deleteConfirmVisible = true;
         },
         //save
