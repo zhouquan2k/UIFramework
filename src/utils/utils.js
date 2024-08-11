@@ -40,7 +40,7 @@ export const globalDateFormat = 'yyyy-MM-dd';
 export const globalDateTimeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 export const getFieldDef = (entity, fieldName, metadata) => {
-  const pos = fieldName.indexOf('.');
+  const pos = fieldName ? fieldName.indexOf('.') : -1;
   if (pos < 0) return entity.fieldMap[fieldName];
   const fieldPart = fieldName.substring(0, pos);
   const field = entity.fieldMap[fieldPart];
@@ -59,6 +59,9 @@ Vue.prototype.getEntityFields = function (entityName, fieldNames) {
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.searchable);
   else if (fieldNames == 'editable')
     return this.$metadata.entitiesMap[entityName].fields.filter(field => !field.hidden && field.updatable);
+
+  if (!Array.isArray(fieldNames)) //single name
+    return getFieldDef(entityMetadata, fieldNames, this.$metadata);
 
   return fieldNames.map(fieldName => {
     // 自定义的field对象
@@ -125,7 +128,7 @@ export const defaultCrudActions = [
 ];
 
 
-
+// @Deprecated
 export const defaultActionProc = function (action) {
   let crud = this.$refs.crud; //TODO how about ref other than crud?
   if (this[action.name]) {
