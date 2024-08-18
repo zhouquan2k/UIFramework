@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="grid-toolbar" v-if="toolbarVisible">
-            <div style="display: flex;width: 90%;">
+            <div style="display: flex;width: 80%;">
                 <el-form v-show="searchVisible" inline class="search-form" v-model="searchForm">
                     <slot name="searches" :data="searchForm"></slot>
                     <template v-if="!$slots['searches']">
@@ -34,8 +34,9 @@
                     </el-form-item>
                 </el-form>
             </div>
-            <slot name="buttons">
-            </slot>
+            <div>
+                <slot name="buttons"></slot>
+            </div>
         </div>
 
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
@@ -144,6 +145,7 @@ export default {
         showSummary: { default: () => false },
         refreshKey: { default: () => 0 },
         oneTimeSave: { type: Boolean, default: () => true },
+        showDialog: { type: String },
     },
     watch: {
         fixedSearchParams: {
@@ -156,6 +158,13 @@ export default {
         refreshKey: {
             handler(newVal) {
                 this.onSearch();
+            },
+        },
+        showDialog: {
+            handler(newVal) {
+                if (newVal == 'add') {
+                    this.showAddDialog();
+                }
             },
         },
     },
@@ -269,7 +278,7 @@ export default {
             this.dialogVisible = true;
         },
         showEditDialog(row) {
-            const record = { ...row }; // TODO
+            const record = this.oneTimeSave ? row : { ...row }; // TODO
             this.$metadata.entitiesMap[this.meta].fields.forEach(field => { if (!Object.hasOwn(record, field.name)) record[field.name] = field.defaultValue ? field.defaultValue : null });
             this.$set(this, 'detail', record);
             this.mode = 'update';
@@ -352,8 +361,8 @@ export default {
     display: flex;
     justify-content: space-between;
     height: 30px;
-    margin-top: 3px;
-    margin-bottom: 3px;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 ::v-deep .el-table__footer-wrapper {
