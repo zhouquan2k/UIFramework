@@ -9,9 +9,9 @@
                 v-else-if="['String', 'Text', 'IDStr'].includes(theType)"></el-input>
             <DictionarySelect :value="safeGet(value, theName)" v-else-if="['Enum', 'Dictionary'].includes(theType)"
                 :dictionary="theDictionary" @change="(newValue) => safeSet(value, theName, newValue)" />
-            <el-date-picker v-else-if="['Date'].includes(theType)" :value="safeGet(value, theName)"
-                @change="(newValue) => safeSet(value, theName, newValue)" type="date" placeholder="选择日期"
-                :value-format="globalDateFormat">
+            <el-date-picker v-else-if="['Date'].includes(theType)" :value="safeGet(value, theName)" type="date"
+                placeholder="选择日期" :value-format="globalDateFormat"
+                @input="(newValue) => safeSet(value, theName, newValue)">
             </el-date-picker>
         </el-form-item>
     </el-col>

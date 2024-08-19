@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="grid-toolbar" v-if="toolbarVisible">
-            <div style="display: flex;width: 90%;">
+            <div style="display: flex;width: 80%;">
                 <el-form v-show="searchVisible" inline class="search-form" v-model="searchForm">
                     <slot name="searches" :data="searchForm"></slot>
                     <template v-if="!$slots['searches']">
@@ -34,21 +34,23 @@
                     </el-form-item>
                 </el-form>
             </div>
-            <slot name="buttons">
-            </slot>
+            <div>
+                <slot name="buttons"></slot>
+            </div>
         </div>
 
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
             :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
-            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary">
+            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" v-on="$listeners">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
                     <slot name="expand" :data="scope.row" />
                 </template>
             </el-table-column>
+            <el-table-column v-if="indexColumnWidth > 0" type="index" :width="indexColumnWidth" />
             <slot name="columns"></slot>
             <template v-if="!$slots['columns']">
                 <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
@@ -59,9 +61,7 @@
                         </template>
                         <DictionaryTag
                             v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
-                            :value="safeGet(scope.row, field.name)"
-                            :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName"
-                            tag />
+                            :value="safeGet(scope.row, field.name)" :dictName="field.typeName" tag />
                         <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
                             {{ field.refData && field.refData.startsWith('dictionary:') ?
             $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row,
@@ -101,17 +101,16 @@
         </el-table>
 
         <el-dialog v-if="dialogVisible" :title="`${label} - ${dialogTitle}`" :visible.sync="dialogVisible">
-            <DetailForm ref="detail-form" :name="entity" :detail="detail" :formCols="formCols" :mode="mode" />
+            <DetailForm ref="detail-form" :name="meta" :meta="meta" :detail="detail" :formCols="formCols" :mode="mode">
+                <template #fields>
+                    <slot name="fields" :data="detail"></slot>
+                </template>
+            </DetailForm>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="save" v-if="mode != 'readonly'">确定</el-button>
-            </span>
-        </el-dialog>
-        <el-dialog title="确认删除" :visible.sync="deleteConfirmVisible">
-            <span>确定删除该{{ label }}吗？</span>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="deleteConfirmVisible = false">取消</el-button>
-                <el-button type="primary" @click="deleteRecord">确定</el-button>
+                <el-button @click="dialogVisible = false" v-if="oneTimeSave">关闭</el-button>
+                <el-button @click="dialogVisible = false" v-if="!oneTimeSave">取消</el-button>
+                <el-button type="primary" @click="$emit('do-save', detail); dialogVisible = false"
+                    v-if="mode != 'readonly' && !oneTimeSave">确定</el-button>
             </span>
         </el-dialog>
     </div>
@@ -121,13 +120,15 @@
 import { dateFormatter, safeGet, hasPermission, globalDateFormat, isValid } from "@/utils/utils";
 import DictionarySelect from '@/components/dictionary_select';
 import DictionaryTag from '@/components/dictionary_tag.vue';
+import DetailForm from './DetailForm.vue';
 import * as XLSX from 'xlsx';
 export default {
-    name: 'SimpleTable',
+    name: 'SimpleTable2',
     props: {
         meta: { type: String },
         label: { default: () => '' }, // entity's name
         idCol: { default: () => 'id' },
+        formCols: { type: Number, default: () => 1 },
         searchMethod: { type: Function },
         actions: { type: Array, default: () => ([]) },
         searchParams: { type: Object, default: () => ({}) }, // searchForm的初值，可变
@@ -136,11 +137,15 @@ export default {
         searchVisible: { type: Boolean, default: () => true },
         checkboxVisible: { type: Boolean, default: () => false },
         exportVisible: { type: Boolean, default: () => false },
+        indexColumnWidth: { type: Number, default: () => 0 },
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
         emptyText: { default: () => null },
         summaryMethod: { default: () => null },
         showSummary: { default: () => false },
+        refreshKey: { default: () => 0 },
+        oneTimeSave: { type: Boolean, default: () => true },
+        showDialog: { type: String },
     },
     watch: {
         fixedSearchParams: {
@@ -149,9 +154,21 @@ export default {
                 this.onSearch();
             },
             deep: true,
-        }
+        },
+        refreshKey: {
+            handler(newVal) {
+                this.onSearch();
+            },
+        },
+        showDialog: {
+            handler(newVal) {
+                if (newVal == 'add') {
+                    this.showAddDialog();
+                }
+            },
+        },
     },
-    components: { DictionarySelect, DictionaryTag },
+    components: { DictionarySelect, DictionaryTag, DetailForm },
     data() {
         return {
             globalDateFormat,
@@ -160,7 +177,7 @@ export default {
             columns: [],
             searches: [],
             dialogVisible: false,
-            deleteConfirmVisible: false,
+            detail: null,
 
             dateFormatter,
             tableUpdateKey: 2617,
@@ -190,8 +207,15 @@ export default {
             return this.actions.filter(action => !action.available || action.available(param));
         },
         callMethod(event, row) {
-            // this.$emit('action', { name: methodName, params: params });
-            this.$emit(event, row);
+            if (this.$defaultActionEmit(event, row)) return;
+            // 默认实现为在线编辑（一次保存）
+            if (event == 'edit') {
+                this.showEditDialog(row);
+            } else if (event == 'delete') {
+                this.onDelete(row);
+            } else if (event == 'detail') {
+                this.showDetailDialog(row);
+            }
         },
         onReset() {
             this.searchForm = { ...this.searchParams };
@@ -232,24 +256,31 @@ export default {
             const sums = [];
             columns.forEach((column, index) => {
                 if (index === 0) {
-                    sums[index] = '记录数：' + data.length;
+                    sums[index] = `记录数: ${data.length}`;
+                }
+                else if (index == 1) {
+                    sums[index] = '合计:';
+                }
+                if (['Integer', 'Decimal'].includes(this.getEntityFields(this.meta, column.property)?.type)) {
+                    sums[index] = data.reduce((sum, item) => sum + parseInt(item[column.property], 10), 0);
                     return;
                 }
             });
-
             return sums;
         },
         // 增删改查的所有功能
         showAddDialog(current) {
-            this.detail = { parentId: current ? current[this.metadata.idField] : null };
-            this.metadata.fields.filter(field => field.defaultValue).forEach(field => this.detail[field.name] = field.defaultValue);
+            const record = { parentId: current ? current[this.metadata.idField] : null };
+            this.$metadata.entitiesMap[this.meta].fields.forEach(field => record[field.name] = field.defaultValue ? field.defaultValue : null);
+            this.detail = record;
             this.mode = 'create';
             this.dialogTitle = '新建';
             this.dialogVisible = true;
         },
         showEditDialog(row) {
-            if (this.$defaultActionEmit('edit', row)) return;
-            this.detail = row;
+            const record = this.oneTimeSave ? row : { ...row }; // TODO
+            this.$metadata.entitiesMap[this.meta].fields.forEach(field => { if (!Object.hasOwn(record, field.name)) record[field.name] = field.defaultValue ? field.defaultValue : null });
+            this.$set(this, 'detail', record);
             this.mode = 'update';
             this.dialogTitle = '编辑';
             this.dialogVisible = true;
@@ -260,35 +291,21 @@ export default {
             this.mode = 'readonly';
             this.dialogVisible = true;
         },
-        showDeleteConfirm(detail) {
-            if (this.$defaultActionEmit('delete', row)) return;
+        onDelete(detail) {
             this.detail = detail;
-            this.deleteConfirmVisible = true;
-        },
-        //save
-        async save() {
-            // TODO
-            this.$refs['detail-form'].validate(async (valid) => {
-                if (!valid) return false;
-                let response;
-                if (this.mode == 'update') {
-                    response = await this.apis.update(this.detail[this.metadata.idField], this.detail);
-                } else if (this.mode == 'create') {
-                    response = await this.apis.create({ ...this.detail }); //...this.searchForm
+            this.$confirm('确定删除该记录吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                if (this.oneTimeSave) {
+                    this.list.splice(this.list.findIndex(item => item[this.idCol] === detail[this.idCol]), 1);
                 }
-                this.$message.success('保存成功');
-                await this.refresh();
-                this.dialogVisible = false;
+                else {
+                    this.$emit('do-delete', detail);
+                }
             });
         },
-        async deleteRecord() {
-            const response = await this.apis.delete(this.detail[this.metadata.idField]);
-            this.$message.success('删除成功');
-            this.refresh();
-            this.deleteConfirmVisible = false;
-        },
-
-
     },
     mounted() {
         this.columns = this.getEntityFields(this.meta, 'listable');
@@ -338,15 +355,17 @@ export default {
         margin-top: 1px;
         margin-left: 5px;
     }
-
-
 }
 
 .grid-toolbar {
     display: flex;
     justify-content: space-between;
     height: 30px;
-    margin-top: 3px;
-    margin-bottom: 3px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+::v-deep .el-table__footer-wrapper {
+    font-weight: bold;
 }
 </style>

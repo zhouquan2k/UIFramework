@@ -13,7 +13,6 @@
     </el-form>
 </template>
 <script>
-import Vue from 'vue';
 import { globalDateFormat } from '@/utils/utils';
 import SingleEditor from '@/components/SingleEditor.vue';
 export default {
