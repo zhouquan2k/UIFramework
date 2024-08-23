@@ -308,6 +308,7 @@ export default {
         },
     },
     mounted() {
+        if (!this.meta) return;
         this.columns = this.getEntityFields(this.meta, 'listable');
         this.searches = this.getEntityFields(this.meta, 'searchable');
         this.searchForm = { ...this.searchParams };
