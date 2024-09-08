@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
+        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="getRowKey"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
             :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
@@ -127,7 +127,7 @@ export default {
     props: {
         meta: { type: String },
         label: { default: () => '' }, // entity's name
-        idCol: { default: () => 'id' },
+        // idCol: { default: () => 'id' },
         formCols: { type: Number, default: () => 1 },
         searchMethod: { type: Function },
         actions: { type: Array, default: () => ([]) },
@@ -185,13 +185,18 @@ export default {
     },
     methods: {
         isValid, safeGet,
+        getRowKey(row, index) {
+            return index; // 使用索引作为key
+        },
         onExport() {
             // TODO call searchMethod get whole data instead of current page
-            const headers = this.columns.map(col => col.label);
-            const data = this.list.map(row => this.columns.map(col => {
-                if (col.type === 'Enum' || col.type === 'Dictionary')
-                    return this.dictFormatter(col.typeName, row[col.name]);
-                return row[col.name];
+            const columns = this.$refs.table.columns;
+            const headers = columns.filter(col => col.label && col.property).map(col => col.label);
+            const data = this.list.map(row => columns.filter(col => col.label).map(col => {
+                const theCol = this.columns.find(c => c.name === col.property);
+                if (theCol?.type === 'Enum' || theCol?.type === 'Dictionary' || theCol?.type === 'RefID')
+                    return this.dictFormatter(theCol?.type === 'RefID' ? theCol.refData : theCol.typeName, row[theCol.name]);
+                return row[col.property];
             }));
             // 创建工作簿
             const wb = XLSX.utils.book_new();
