@@ -304,7 +304,10 @@ export default {
                 type: 'warning'
             }).then(() => {
                 if (this.oneTimeSave) {
-                    this.list.splice(this.list.findIndex(item => item[this.idCol] === detail[this.idCol]), 1);
+                    const index = this.list.findIndex(item => item === detail);
+                    if (index !== -1) {
+                        this.list.splice(index, 1);
+                    }
                 }
                 else {
                     this.$emit('do-delete', detail);
