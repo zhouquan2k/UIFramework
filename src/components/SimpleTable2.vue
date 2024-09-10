@@ -127,6 +127,7 @@ export default {
     props: {
         meta: { type: String },
         label: { default: () => '' }, // entity's name
+        data: { type: Array, default: () => null },
         // idCol: { default: () => 'id' },
         formCols: { type: Number, default: () => 1 },
         searchMethod: { type: Function },
@@ -167,6 +168,11 @@ export default {
                 }
             },
         },
+        data: {
+            handler(newVal) {
+                this.list = newVal;
+            },
+        }
     },
     components: { DictionarySelect, DictionaryTag, DetailForm },
     data() {
@@ -192,11 +198,12 @@ export default {
             // TODO call searchMethod get whole data instead of current page
             const columns = this.$refs.table.columns;
             const headers = columns.filter(col => col.label && col.property).map(col => col.label);
-            const data = this.list.map(row => columns.filter(col => col.label).map(col => {
+            const data = this.list.map(row => columns.filter(col => col.label && col.property).map(col => {
                 const theCol = this.columns.find(c => c.name === col.property);
                 if (theCol?.type === 'Enum' || theCol?.type === 'Dictionary' || theCol?.type === 'RefID')
-                    return this.dictFormatter(theCol?.type === 'RefID' ? theCol.refData : theCol.typeName, row[theCol.name]);
-                return row[col.property];
+                    return this.dictFormatter(theCol?.type === 'RefID' ? theCol.refData.startsWith('dictionary:') ? theCol.refData.substring(11) : theCol.refData : theCol.typeName, safeGet(row, theCol.name));
+                return safeGet(row, col.property);
+
             }));
             // 创建工作簿
             const wb = XLSX.utils.book_new();
@@ -316,6 +323,9 @@ export default {
         },
     },
     mounted() {
+        if (this.data) {
+            this.list = this.data;
+        }
         if (!this.meta) return;
         this.columns = this.getEntityFields(this.meta, 'listable');
         this.searches = this.getEntityFields(this.meta, 'searchable');

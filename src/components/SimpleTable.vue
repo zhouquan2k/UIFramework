@@ -39,9 +39,10 @@
 
         <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol" v-loading="loading"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
+            @row-click="handleRowClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
-            :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
-            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size">
+            :highlight-current-row="highlightCurrentRow" @current-change="row => $emit('current-change', row)"
+            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size" :highlight-selection-row="highlightSelectionRow">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
@@ -130,6 +131,8 @@ export default {
         tableStyle: { default: () => null },
         showSort: { default: () => true },
         loading: { default: () => false },
+        highlightCurrentRow: { default: () => true },
+        highlightSelectionRow: { type: Boolean, default: () => false },
     },
     watch: {
         fixedSearchParams: {
@@ -160,20 +163,17 @@ export default {
     methods: {
         isValid, safeGet,
         onExport() {
-            // TODO call searchMethod get whole data instead of current page
-            const headers = this.columns.map(col => col.label);
-            const data = this.list.map(row => this.columns.map(col => {
-                if (col.type === 'Enum' || col.type === 'Dictionary')
-                    return this.dictFormatter(col.typeName, row[col.name]);
-                return row[col.name];
-            }));
-            // 创建工作簿
+            const columns = this.$refs.table.columns;
+            const headers = columns.filter(col => col.label && col.property).map(col => col.label);
+            const data = this.list.map(row => columns.filter(col => col.label).map(col => {
+                const theCol = this.columns.find(c => c.name === col.property);
+                if (theCol?.type === 'Enum' || theCol?.type === 'Dictionary' || theCol?.type === 'RefID')
+                    return this.dictFormatter(theCol?.type === 'RefID' ? theCol.refData.startsWith('dictionary:') ? theCol.refData.substring(11) : theCol.refData : theCol.typeName, safeGet(row, theCol.name));
+                return safeGet(row, col.property);
+            })); 
             const wb = XLSX.utils.book_new();
-            // 将数据转换为工作表
             const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-            // 将工作表添加到工作簿
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            // 导出工作簿（在浏览器环境中会触发下载）
             XLSX.writeFile(wb, "export.xlsx");
         },
         hasPermission,
@@ -186,6 +186,9 @@ export default {
         },
         toggleRowExpansion(row, expanded) {
             this.$refs.table.toggleRowExpansion(row, expanded);
+        },
+        toggleRowSelection(row, selected) {
+            this.$refs.table.toggleRowSelection(row, selected);
         },
         onReset() {
             this.searchForm = { ...this.searchParams };
@@ -222,6 +225,9 @@ export default {
         },
         handleDblClick(data) {
             this.$emit('row-dblclick', data);
+        },
+        handleRowClick(data) {
+            this.$emit('row-click', data);
         },
         refreshTable() {
             this.tableUpdateKey++;
