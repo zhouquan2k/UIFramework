@@ -30,6 +30,7 @@
                         <el-button type="primary" plain @click="onSearch">搜索</el-button>
                         <el-button @click="onReset">重置</el-button>
                         <el-button v-if="exportVisible" type="warning" plain @click="onExport">导出</el-button>
+                        <el-button v-if="printVisible" plain @click="onPrint">打印</el-button>
                     </el-form-item>
                 </el-form>
             </div>
@@ -37,7 +38,7 @@
             </slot>
         </div>
 
-        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol" v-loading="loading"
+        <el-table :id="tableId" :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol" v-loading="loading"
             :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
             :highlight-current-row="true" @current-change="row => $emit('current-change', row)"
@@ -107,6 +108,7 @@ export default {
     name: 'SimpleTable',
     props: {
         idCol: { default: () => 'id' },
+        tableId: { default: () => 'theTable' },
         columns: { type: Array },
         data: { type: Array, default: () => null },
         groupByColumns: { type: Array, default: () => null },
@@ -121,6 +123,7 @@ export default {
         searchVisible: { type: Boolean, default: () => false },
         checkboxVisible: { type: Boolean, default: () => false },
         exportVisible: { type: Boolean, default: () => false },
+        printVisible: { type: Boolean, default: () => false },
         actionCntToHide: { type: Number, default: () => 2 },
         rowClassName: { default: () => null }, //function or string, pass 
         emptyText: { default: () => null },
@@ -175,6 +178,13 @@ export default {
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
             // 导出工作簿（在浏览器环境中会触发下载）
             XLSX.writeFile(wb, "export.xlsx");
+        },
+        onPrint() {
+            this.$print({
+                printable: this.tableId,
+                targetStyles: ['*'],
+                type: 'html'
+            });
         },
         hasPermission,
         availableActions(param) {
