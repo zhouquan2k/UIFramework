@@ -4,7 +4,7 @@
             <div style="display: flex;width: 80%;">
                 <el-form v-show="searchVisible" inline class="search-form" v-model="searchForm">
                     <slot name="searches" :data="searchForm"></slot>
-                    <template v-if="!$slots['searches']">
+                    <template v-if="!$scopedSlots.searches">
                         <el-form-item v-for="field in searches" :key="field.name"
                             v-if="$scopedSlots[`searches-${field.name}`] || !field.hidden && ['ID', 'IDStr', 'Integer', 'String', 'Enum', 'Dictionary', 'Date', 'Timestamp'].includes(field.type) && !fixedSearchParams[field.name]">
                             <template v-if="$scopedSlots[`searches-${field.name}`]">
@@ -100,7 +100,7 @@
             </el-table-column>
         </el-table>
 
-        <el-dialog v-if="dialogVisible" :title="`${label} - ${dialogTitle}`" :visible.sync="dialogVisible">
+        <el-dialog v-if="dialogVisible" :title="`${label} - ${dialogTitle}`" :visible.sync="dialogVisible" :close-on-click-modal="false">
             <DetailForm ref="detail-form" :name="meta" :meta="meta" :detail="detail" :formCols="formCols" :mode="mode">
                 <template #fields>
                     <slot name="fields" :data="detail"></slot>

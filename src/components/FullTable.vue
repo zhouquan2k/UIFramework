@@ -16,7 +16,7 @@
             <slot name="simple-table_columns-roles" :data="scope.data"></slot>
         </template-->
         </SimpleTable>
-        <el-dialog v-if="dialogVisible" :title="`${label} - ${dialogTitle}`" :visible.sync="dialogVisible">
+        <el-dialog v-if="dialogVisible" :title="`${label} - ${dialogTitle}`" :visible.sync="dialogVisible" :close-on-click-modal="false">
             <DetailForm ref="detail-form" :name="entity" :detail="detail" :formCols="formCols" :mode="mode" />
             <span slot="footer" class="dialog-footer">
                 <el-button @click="dialogVisible = false">取消</el-button>

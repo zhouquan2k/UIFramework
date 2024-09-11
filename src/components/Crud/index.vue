@@ -94,7 +94,7 @@
             </el-table-column>
         </el-table>
         <!--el-pagination :hide-on-single-page="false" :total="list?.length" layout="prev, pager, next" /-->
-        <el-dialog v-if="dialogVisible" :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible">
+        <el-dialog v-if="dialogVisible" :title="`${desc} - ${dialogTitle}`" :visible.sync="dialogVisible" :close-on-click-modal="false">
             <DetailForm ref="detail-form" :name="name" :detail="detail" :formCols="formCols" :mode="mode"
                 :toManySelectData="toManySelectData" />
             <span slot="footer" class="dialog-footer">
