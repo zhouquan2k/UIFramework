@@ -39,7 +39,7 @@
                 :columns="metadata.fields"></right-toolbar>
         </div>
 
-        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" row-key="id" default-expand-all
+        <el-table :key="tableUpdateKey" ref="table" class="main-table" :data="list" row-key="getRowKey" default-expand-all
             :tree-props="{ children: 'children' }" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
             :row-class-name="rowClassName" :highlight-current-row="detailMethod ? true : false"
             @current-change="defaultCurrentChange">
@@ -113,7 +113,7 @@
 </template>
   
 <script>
-import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel, hasPermission } from "@/utils/utils";
+import { notImplemented, initMetadata, defaultCrudActions, dateFormatter, safeGet, getManyItemLabel, hasPermission, getRowKey } from "@/utils/utils";
 import RightToolbar from "@/components/RightToolbar"
 import DictionarySelect from '@/components/dictionary_select'
 import DetailForm from './detail_form';
