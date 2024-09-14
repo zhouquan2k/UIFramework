@@ -119,11 +119,15 @@ export const defaultCrudActions = [
     desc: "修改",
     event: "edit",
     method: 'showEditDialog',
+    available: (row, This) => {
+      return !This || !This.writePermission || This.hasPermission(This.writePermission);
+    }
   },
   {
     desc: '删除',
     event: 'delete',
     method: 'showDeleteConfirm',
+    available: (row, This) => !This || !This.writePermission || This.hasPermission(This.writePermission)
   }
 ];
 
@@ -227,7 +231,7 @@ export function getAuthHeader() {
 
 const AdminPermission = "security.***";
 export function hasPermission(permission, location, allPermissions) {
-  let permString = permission;
+  let permString = permission; // required permission
   if (location) permString += `@${location}`;
   if (!allPermissions) allPermissions = store.getters && store.getters.permissions;
   //console.log(">>>>>"+allPermissions,permission,allPermissions.indexOf(permission));
