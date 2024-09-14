@@ -80,7 +80,7 @@
                 <template slot-scope="scope">
                     <el-button :name="`${action.desc}`"
                         v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"
-                        :key="`button-${action.event}`" v-if="!action.available || action.available(scope.row)"
+                        :key="`button-${action.event}`"
                         type="text" :style="action.style" @click="callMethod(action.event, scope.row)">{{ action.desc
                         }}</el-button>
                     <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
@@ -90,7 +90,7 @@
                         </span>
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
-                                :command="action.event" v-if="!action.available || action.available(scope.row)"
+                                :command="action.event" 
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
             action.desc
         }}</el-dropdown-item>
@@ -146,6 +146,7 @@ export default {
         refreshKey: { default: () => 0 },
         oneTimeSave: { type: Boolean, default: () => true },
         showDialog: { type: String },
+        writePermission: { type: String, default: () => null },
     },
     watch: {
         fixedSearchParams: {
@@ -209,7 +210,7 @@ export default {
         },
         hasPermission,
         availableActions(param) {
-            return this.actions.filter(action => !action.available || action.available(param));
+            return this.actions.filter(action => !action.available || action.available(param, this));
         },
         callMethod(event, row) {
             if (this.$defaultActionEmit(event, row)) return;
