@@ -38,12 +38,13 @@
             </slot>
         </div>
 
-        <el-table :id="tableId" :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol" v-loading="loading"
-            :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"
-            @row-click="handleRowClick"
-            :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
+        <el-table :id="tableId" :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
+            v-loading="loading" :default-expand-all="false" @selection-change="handleSelectionChange"
+            @row-dblclick="handleDblClick" @row-click="handleRowClick" :row-class-name="rowClassName"
+            @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
             :highlight-current-row="highlightCurrentRow" @current-change="row => $emit('current-change', row)"
-            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size" :highlight-selection-row="highlightSelectionRow">
+            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size"
+            :highlight-selection-row="highlightSelectionRow">
             <el-table-column v-if="checkboxVisible" type="selection" width="55" />
             <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
                 <template slot-scope="scope">
@@ -51,7 +52,8 @@
                 </template>
             </el-table-column>
             <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
-                :width="field.colWidth" :sortable="showSort">
+                :width="field.colWidth" :sortable="showSort"
+                :filter-method="filters.includes(field.name) ? filterMethod : null" :filters="getFilters(field.name)">
                 <template slot-scope="scope">
                     <template v-if="$scopedSlots[`columns-${field.name}`]">
                         <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
@@ -62,12 +64,12 @@
                         :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName" tag />
                     <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
                         {{ field.refData && field.refData.startsWith('dictionary:') ?
-        $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
-        :
-        safeGet(scope.row,
-            field.refData) }}</span>
+                            $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
+                            :
+                            safeGet(scope.row,
+                                field.refData) }}</span>
                     <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
-        safeGet(scope.row, field.name), field)
+                        safeGet(scope.row, field.name), field)
                         }}</span>
                     <span v-else-if="field.render">{{ field.render(scope.row) }}</span>
                     <span v-else>{{ safeGet(scope.row, field.name) }}</span>
@@ -90,7 +92,7 @@
                             <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
                                 :command="action.event" v-if="!action.available || action.available(scope.row)"
                                 size="mini" type="text" :icon="action.icon" :key="action.name">{{
-                                action.desc
+                                    action.desc
                                 }}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
@@ -136,6 +138,7 @@ export default {
         loading: { default: () => false },
         highlightCurrentRow: { default: () => true },
         highlightSelectionRow: { type: Boolean, default: () => false },
+        filters: { type: Array, default: () => [] }
     },
     watch: {
         fixedSearchParams: {
@@ -158,13 +161,24 @@ export default {
             globalDateFormat,
             list: [],
             searchForm: {},
-
             dateFormatter,
             tableUpdateKey: 2617,
         };
     },
     methods: {
         isValid, safeGet,
+        filterMethod(value, row, column) {
+            console.log('filtering...', value, row, column);
+            return row[column.property] === value;
+        },
+        getFilters(column) {
+            if (this.list && this.filters.includes(column)) {
+                const uniqueValues = [...new Set(this.list.map(item => item[column]))];
+                return uniqueValues.map(item => ({ text: item, value: item })).slice(0, 10);
+            }
+            return null;
+
+        },
         onExport() {
             const columns = this.$refs.table.columns;
             const headers = columns.filter(col => col.label && col.property).map(col => col.label);
@@ -173,7 +187,7 @@ export default {
                 if (theCol?.type === 'Enum' || theCol?.type === 'Dictionary' || theCol?.type === 'RefID')
                     return this.dictFormatter(theCol?.type === 'RefID' ? theCol.refData.startsWith('dictionary:') ? theCol.refData.substring(11) : theCol.refData : theCol.typeName, safeGet(row, theCol.name));
                 return safeGet(row, col.property);
-            })); 
+            }));
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
