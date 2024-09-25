@@ -37,68 +37,69 @@
             <slot name="buttons">
             </slot>
         </div>
-
-        <el-table :id="tableId" :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol"
-            v-loading="loading" :default-expand-all="false" @selection-change="handleSelectionChange"
-            @row-dblclick="handleDblClick" @row-click="handleRowClick" :row-class-name="rowClassName"
-            @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
-            :highlight-current-row="highlightCurrentRow" @current-change="row => $emit('current-change', row)"
-            :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size"
-            :highlight-selection-row="highlightSelectionRow">
-            <el-table-column v-if="checkboxVisible" type="selection" width="55" />
-            <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
-                <template slot-scope="scope">
-                    <slot name="expand" :data="scope.row" />
-                </template>
-            </el-table-column>
-            <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
-                :width="field.colWidth" :sortable="showSort"
-                :filter-method="filters.includes(field.name) ? filterMethod : null" :filters="getFilters(field.name)">
-                <template slot-scope="scope">
-                    <template v-if="$scopedSlots[`columns-${field.name}`]">
-                        <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
+        <div :id="tableId" class="print-content">
+            <h3 v-if="title">{{ titleText }}</h3>
+            <el-table :id="tableId" :key="tableUpdateKey" ref="table" class="main-table" :data="list" :row-key="idCol" v-loading="loading"
+                :default-expand-all="false" @selection-change="handleSelectionChange" @row-dblclick="handleDblClick"  @row-click="handleRowClick"
+                :row-class-name="rowClassName" @expand-change="row => $emit('expand-change', row)" :empty-text="emptyText"
+                :highlight-current-row="highlightCurrentRow" @current-change="row => $emit('current-change', row)"
+                :summary-method="summaryMethod ?? defaultSummaryMethod" :show-summary="showSummary" :size="size"
+                :highlight-selection-row="highlightSelectionRow">
+                <el-table-column v-if="checkboxVisible" type="selection" width="55" />
+                <el-table-column type="expand" v-if="$scopedSlots['expand']" width="20">
+                    <template slot-scope="scope">
+                        <slot name="expand" :data="scope.row" />
                     </template>
-                    <DictionaryTag
-                        v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
-                        :value="safeGet(scope.row, field.name)"
-                        :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName" tag />
-                    <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
-                        {{ field.refData && field.refData.startsWith('dictionary:') ?
-                            $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
-                            :
-                            safeGet(scope.row,
-                                field.refData) }}</span>
-                    <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
-                        safeGet(scope.row, field.name), field)
-                        }}</span>
-                    <span v-else-if="field.render">{{ field.render(scope.row) }}</span>
-                    <span v-else>{{ safeGet(scope.row, field.name) }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right"
-                :width="actions.length > 2 ? 200 : actions.length * 70">
-                <template slot-scope="scope">
-                    <el-button :name="`${action.desc}`"
-                        v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"
-                        :key="`button-${action.event}`" v-if="!action.available || action.available(scope.row)"
-                        type="text" :style="action.style" @click="callMethod(action.event, scope.row)">{{ action.desc
-                        }}</el-button>
-                    <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
-                        @command="command => callMethod(command, scope.row)">
-                        <span class="el-dropdown-link">
-                            更多<i class="el-icon-d-arrow-right el-icon--left" />
-                        </span>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
-                                :command="action.event" v-if="!action.available || action.available(scope.row)"
-                                size="mini" type="text" :icon="action.icon" :key="action.name">{{
+                </el-table-column>
+                <el-table-column :prop="field.name" :label="field.label" v-for="field in columns" :key="field.name"
+                    :width="field.colWidth" :sortable="showSort"
+                    :filter-method="filters.includes(field.name) ? filterMethod : null" :filters="getFilters(field.name)">
+                    <template slot-scope="scope">
+                        <template v-if="$scopedSlots[`columns-${field.name}`]">
+                            <slot :name="`columns-${field.name}`" :data="scope.row"></slot>
+                        </template>
+                        <DictionaryTag
+                            v-else-if="['Enum', 'Dictionary'].includes(field.type) && isValid(safeGet(scope.row, field.name))"
+                            :value="safeGet(scope.row, field.name)"
+                            :dictName="field.type == 'Dictionary' ? field.typeName?.split(':')[1] : field.typeName" tag />
+                        <span v-else-if="['RefID'].includes(field.type) && isValid(safeGet(scope.row, field.name))">
+                            {{ field.refData && field.refData.startsWith('dictionary:') ?
+            $metadata.dictionariesMap[field.refData.substring(11)]?.[safeGet(scope.row, field.name)]?.label
+            :
+            safeGet(scope.row,
+                field.refData) }}</span>
+                        <span v-else-if="['Date', 'Timestamp'].includes(field.type)">{{ dateFormatter(0, 0,
+            safeGet(scope.row, field.name), field)
+                            }}</span>
+                        <span v-else-if="field.render">{{ field.render(scope.row) }}</span>
+                        <span v-else>{{ safeGet(scope.row, field.name) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column v-if="actions && actions.length > 0" label="操作" fixed="right"
+                    :width="actions.length > 2 ? 200 : actions.length * 70">
+                    <template slot-scope="scope">
+                        <el-button :name="`${action.desc}`"
+                            v-for="action in availableActions(scope.row).slice(0, actionCntToHide)"
+                            :key="`button-${action.event}`" v-if="!action.available || action.available(scope.row)"
+                            type="text" :style="action.style" @click="callMethod(action.event, scope.row)">{{ action.desc
+                            }}</el-button>
+                        <el-dropdown v-if="availableActions(scope.row).length > actionCntToHide"
+                            @command="command => callMethod(command, scope.row)">
+                            <span class="el-dropdown-link">
+                                更多<i class="el-icon-d-arrow-right el-icon--left" />
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item v-for="action in availableActions(scope.row).slice(actionCntToHide)"
+                                    :command="action.event" v-if="!action.available || action.available(scope.row)"
+                                    size="mini" type="text" :icon="action.icon" :key="action.name">{{
                                     action.desc
-                                }}</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown>
-                </template>
-            </el-table-column>
-        </el-table>
+                                    }}</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
     </div>
 </template>
 
@@ -138,7 +139,13 @@ export default {
         loading: { default: () => false },
         highlightCurrentRow: { default: () => true },
         highlightSelectionRow: { type: Boolean, default: () => false },
-        filters: { type: Array, default: () => [] }
+        filters: { type: Array, default: () => [] },
+        title: { default: () => null },
+    },
+    computed: {
+        titleText() {
+            return typeof this.title === 'function' ? this.title(this.list) : this.title;
+        }
     },
     watch: {
         fixedSearchParams: {
@@ -161,6 +168,7 @@ export default {
             globalDateFormat,
             list: [],
             searchForm: {},
+
             dateFormatter,
             tableUpdateKey: 2617,
         };
@@ -299,6 +307,23 @@ export default {
     margin-right: 10px;
 }
 */
+@media print {
+    /*
+      @page {
+        size: landscape;
+        margin: 10mm;
+      }
+      */
+      body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      /* 让打印的内容自适应整个页面宽度 */
+      .print-content {
+        width: 100%;
+      }
+    }
 
 .el-dropdown-link {
     margin-left: 10px;
