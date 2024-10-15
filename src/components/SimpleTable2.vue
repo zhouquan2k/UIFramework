@@ -133,7 +133,7 @@ export default {
         searchMethod: { type: Function },
         actions: { type: Array, default: () => ([]) },
         searchParams: { type: Object, default: () => ({}) }, // searchForm的初值，可变
-        fixedSearchParams: { type: Object, default: () => ({}) },
+        fixedSearchParams: { type: Object, default: () => ({}) }, // 外部控制的参数
         toolbarVisible: { type: Boolean, default: () => true },
         searchVisible: { type: Boolean, default: () => true },
         checkboxVisible: { type: Boolean, default: () => false },
