@@ -37,7 +37,8 @@ export function initRouter() {
         appRoute,
         {
             path: '/login',
-            component: (resolve) => require(['@user/login'], resolve),
+            // component: (resolve) => require(['@user/login'], resolve),
+            component: (resolve) => require(['@gcp/view/login'], resolve),
         },
         {
             path: '/ui-artisan',

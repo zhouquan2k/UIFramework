@@ -51,5 +51,5 @@ module.exports = {
 
   title: 'GCP',
 
-  logo: '/progartisan.jpeg'
+  logo: '/hospital.jpg'
 }
